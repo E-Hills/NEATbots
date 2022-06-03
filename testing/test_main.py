@@ -3,16 +3,18 @@ import os, sys
 
 sys.path.insert(1, os.path.abspath('.'))
 
-from test_evolution import Test_Evolution
-from test_simulation import Test_Simulation
+from testing import test_evolution
+from testing import test_simulation
 
-#from core import main
+def main():
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
 
-class Test_Main(unittest.TestCase):
+    suite.addTests(loader.loadTestsFromModule(test_evolution))
+    suite.addTests(loader.loadTestsFromModule(test_simulation))
 
-    # Coordinate all testing files
-    def test_coordinate(self):
-        Test_Evolution.test_evo_exists(self)
-        Test_Simulation.test_sim_exists(self)
+    runner = unittest.TextTestRunner(verbosity=3)
+    result = runner.run(suite)
 
-unittest.main()
+if __name__ == "__main__":
+    main()
