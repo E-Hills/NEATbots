@@ -1,3 +1,4 @@
 /conda_env
 /voxcraft-sim
 /voxcraft
+*.py[co]
