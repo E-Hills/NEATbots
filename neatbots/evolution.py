@@ -1,6 +1,6 @@
 
-from simulation import Simulation as sim
 import MultiNEAT as NEAT
+from neatbots.simulation import Simulation
 
 class Evolution:
     def __init__(self, sim, pop_size):

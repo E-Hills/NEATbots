@@ -1,6 +1,6 @@
 
-from simulation import Simulation
-from evolution import Evolution
+from neatbots.simulation import Simulation
+from neatbots.evolution import Evolution
 
 def main():
     main_sim = Simulation()
