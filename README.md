@@ -1,4 +1,4 @@
-# hyperNEATsoftBots
+# Evolving Complex Behaviours with Evolutionary Computation
 
 Final semester project for my Computer Science BSc (Artificial Intelligence) at Goldsmiths, University of London.
 
