@@ -8,5 +8,6 @@ class Test_Simulation(unittest.TestCase):
     def test_sim_exists(self):
         self.assertIsNotNone(Simulation)
 
+
 if __name__ == "__main__":
     unittest.main()

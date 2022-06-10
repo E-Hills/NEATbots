@@ -1,4 +1,4 @@
 /conda_env
-/voxcraft
-/vox_exp
+/neatbots/voxcraft
+/workspace
 *.py[co]
