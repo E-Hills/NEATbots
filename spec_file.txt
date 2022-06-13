@@ -3,7 +3,7 @@
 # platform: linux-64
 @EXPLICIT
 https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
-https://repo.anaconda.com/pkgs/main/linux-64/ca-certificates-2022.4.26-h06a4308_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/ca-certificates-2022.5.18.1-ha878542_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/ld_impl_linux-64-2.38-h1181459_1.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/libgfortran-3.0.0-1.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/libgfortran5-11.2.0-h1234567_1.tar.bz2
@@ -25,7 +25,7 @@ https://repo.anaconda.com/pkgs/main/linux-64/libwebp-base-1.2.2-h7f8727e_0.tar.b
 https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.2.11-h166bdaf_1014.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/lz4-c-1.9.3-h295c915_1.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/ncurses-6.3-h7f8727e_2.tar.bz2
-https://repo.anaconda.com/pkgs/main/linux-64/openssl-1.1.1o-h7f8727e_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/openssl-1.1.1o-h166bdaf_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/xz-5.2.5-h7f8727e_1.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/libblas-3.9.0-15_linux64_openblas.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/readline-8.1.2-h7f8727e_1.tar.bz2
@@ -38,10 +38,12 @@ https://conda.anaconda.org/conda-forge/linux-64/libcblas-3.9.0-15_linux64_openbl
 https://conda.anaconda.org/conda-forge/linux-64/liblapack-3.9.0-15_linux64_openblas.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/libpng-1.6.37-hbc83047_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/libtiff-4.3.0-h0fcbabc_4.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/libxml2-2.9.12-h03d6c58_0.conda
 https://repo.anaconda.com/pkgs/main/linux-64/sqlite-3.38.2-hc218d9a_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/tk-8.6.11-h1ccaba5_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/freetype-2.11.0-h70c0345_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/lcms2-2.12-h3be6417_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/libxslt-1.1.34-hc22bd24_0.conda
 https://repo.anaconda.com/pkgs/main/linux-64/openjpeg-2.4.0-h3ad879b_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/python-3.6.15-hb7a2778_0_cpython.tar.bz2
 https://repo.anaconda.com/pkgs/main/noarch/backcall-0.2.0-pyhd3eb1b0_0.tar.bz2
@@ -50,6 +52,7 @@ https://repo.anaconda.com/pkgs/main/noarch/cycler-0.11.0-pyhd3eb1b0_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/noarch/decorator-5.1.1-pyhd3eb1b0_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/entrypoints-0.3-py36_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/noarch/ipython_genutils-0.2.0-pyhd3eb1b0_1.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/lxml-3.8.0-py36_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/noarch/nest-asyncio-1.5.1-pyhd3eb1b0_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/olefile-0.46-py36_0.tar.bz2
 https://repo.anaconda.com/pkgs/main/linux-64/opencv-3.4.1-py36h6fd60c2_1.tar.bz2

@@ -31,7 +31,7 @@ class Simulation():
         vxd.set_data(body)
         vxd.write(self.stor_dir + "/robot.vxd")
 
-        completed = subprocess.run([self.exec_dir, '-i', self.stor_dir, '-o', self.stor_dir, '-w', self.node_dir, '-f'], encoding='utf-8', stdout=subprocess.PIPE)
+        completed = subprocess.run([self.exec_dir, '-i', self.stor_dir, '-o', self.stor_dir + "/results.xml", '-w', self.node_dir, '-f'], encoding='utf-8', stdout=subprocess.PIPE)
 
         with open(self.stor_dir + "/robot.history", 'w') as hist:
             hist.write(completed.stdout)
