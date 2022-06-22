@@ -27,7 +27,7 @@ class VXD:
             body_flatten[:,i] = data[:,:,i].flatten()
         
         structure = etree.SubElement(root, "Structure")
-        structure.set('replace', 'VXA.VXC.Structure')
+        #structure.set('replace', 'VXA.VXC.Structure')
         structure.set('Compression', 'ASCII_READABLE')
 
         etree.SubElement(structure, "X_Voxels").text = str(X_Voxels)

@@ -1,6 +1,5 @@
 import numpy as np
 from lxml import etree
-import os
 
 '''
 Does not yet include signaling parameters
@@ -8,7 +7,7 @@ Does not yet include signaling parameters
 
 class VXA:
     
-    def __init__(self, HeapSize=0.1, EnableCilia=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8, SlowDampingZ=0.01,
+    def __init__(self, HeapSize=0.5, EnableCilia=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8, SlowDampingZ=0.01,
                 EnableCollision=0, SimTime=5, TempPeriod=0.1, GravEnabled=1, GravAcc=-9.81, FloorEnabled=1, Lattice_Dim=0.01,
                 RecordStepSize=100, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, VaryTempEnabled=1, TempAmplitude=20, TempBase=25,
                 TempEnabled=1):
@@ -73,7 +72,8 @@ class VXA:
         etree.SubElement(sub, "mtVAR").text = 't'
         etree.SubElement(sub, "mtCONST").text = str(self.SimTime)
 
-        fitness = etree.SubElement(simulator, "FitnessFunction") # default - maximum x distance
+        # Fitness Function
+        fitness = etree.SubElement(simulator, "FitnessFunction")
         add = etree.SubElement(fitness, "mtADD")
         mul = etree.SubElement(add, 'mtMUL')
         etree.SubElement(mul, "mtVAR").text = 'x'
@@ -82,7 +82,6 @@ class VXA:
         etree.SubElement(mul2, "mtVAR").text = 'y'
         etree.SubElement(mul2, "mtVAR").text = 'y'
 
-
         history = etree.SubElement(simulator, "RecordHistory")
         etree.SubElement(history, "RecordStepSize").text = str(self.RecordStepSize) #Capture image every 100 time steps
         etree.SubElement(history, "RecordVoxel").text = str(self.RecordVoxel) # Add voxels to the visualization
@@ -90,7 +89,6 @@ class VXA:
         etree.SubElement(history, "RecordFixedVoxels").text = str(self.RecordFixedVoxels) 
         
         # Environment
-
         environment = etree.SubElement(root, "Environment")
         thermal = etree.SubElement(environment, "Thermal")
         etree.SubElement(thermal, "TempEnabled").text = str(self.TempEnabled)
@@ -180,5 +178,55 @@ class VXA:
         with open(filename, 'w+') as f:
             f.write(etree.tostring(self.tree, encoding="unicode", pretty_print=True))
 
-    def set_fitness_function(self):
+    def set_fitness_function(self, str_fitness, tree_fitness):
+
+        mt_ops = {"+": "mtADD",
+                  "-": "mtSUB",
+                  "*": "mtMUL",
+                  "/": "mtDIV",
+                  "**": "mtPOW",
+                  "¬": "mtNOT",
+                  ">": "mtGREATERTHAN",
+                  "<": "mtLESSTHAN",
+                  "&&": "mtAND",
+                  "||": "mtOR"}
+
+        mt_funcs = {"con": "mtCONST",
+                    "cdf": "mtNORMALCDF",
+                    "sqr": "mtSQRT",
+                    "log": "mtLOG",
+                    "rnd": "mtINT",
+                    "abs": "mtABS",
+                    "sin": "mtSIN",
+                    "cos": "mtCOS",
+                    "tan": "mtTAN",
+                    "atan": "mtATAN"}
+
+        mt_vars = {"=": "mtEND",
+                   "e": "mtE",
+                   "pi": "mtPI",
+                   "x": "x",
+                   "y": "y",
+                   "z": "z",
+                   "h": "hit",
+                   "t": "t",
+                   "a": "angle",
+                   "c": "closeness",
+                   "v": "num_voxel",
+                   "p": "numClosePairs"}
+
+
+        tokens = str_fitness.split(" ")
+
+        for t in tokens:
+            if t in mt_ops:
+                pass
+            elif t in mt_funcs:
+                pass
+            elif t in mt_vars:
+                pass
+            elif (t is int):
+                pass 
+
+
         pass
