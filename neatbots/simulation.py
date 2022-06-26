@@ -5,7 +5,7 @@ from neatbots.VoxcraftVXA import VXA
 from neatbots.VoxcraftVXD import VXD
 
 class Simulation():
-    def __init__(self, heap_size=0.5):
+    def __init__(self, heap_size:float=0.5):
 
         # Paths for simulation execution, and file storage
         self.file_dir = os.path.dirname(os.path.abspath(__file__))
@@ -14,9 +14,12 @@ class Simulation():
         self.stor_dir = os.path.join(self.file_dir, 'voxcraft/generation')
         # Make storage dir if not already made
         os.makedirs(self.stor_dir, exist_ok=True)
+        # Empty storage directories
+        for i in os.listdir(self.stor_dir):
+            os.remove(os.path.join(self.stor_dir,i))
 
         # Configure simulation settings
-        self.vxa = VXA(HeapSize=heap_size, EnableExpansion=1, TempEnabled=1, VaryTempEnabled=1, TempPeriod=0.1, TempBase=25, TempAmplitude=20)
+        self.vxa = VXA(RecordStepSize=0, HeapSize=heap_size, EnableExpansion=1, TempEnabled=1, VaryTempEnabled=1, TempPeriod=0.1, TempBase=25, TempAmplitude=20)
 
         # Define material types
         self.vxa.add_material(RGBA=(0,255,0), E=1e9, RHO=1e3) # passive
@@ -29,9 +32,9 @@ class Simulation():
 
         # Settings for simulated individual
         vxd = VXD()
-        vxd.set_tags(RecordVoxel=1)
+        vxd.set_tags(RecordStepSize=0)
         vxd.set_data(morphology)
-        vxd.write(os.path.join(self.stor_dir, "robot_" + str(id)+ ".vxd"))
+        vxd.write(os.path.join(self.stor_dir, "robot_" + str(id)+ ".vxd")) #.vxd
 
     def simulate_generation(self):
 
@@ -51,10 +54,9 @@ class Simulation():
 
         robots = tree.xpath("//detail/*")
 
-        #fitnesses = dict(zip([r.tag for r in robots],
-        #                     [r.xpath("fitness_score")[0].text for r in robots]))
-
-        fitnesses = [float(r.xpath("fitness_score")[0].text) for r in robots]
+        robots_s = sorted(robots, key=lambda r: int(str(r.tag).split("robot_")[1]))
+        
+        fitnesses = [float(r.xpath("fitness_score")[0].text) for r in robots_s]
 
         return fitnesses
         
