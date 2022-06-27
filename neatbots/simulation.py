@@ -34,16 +34,16 @@ class Simulation():
         vxd = VXD()
         vxd.set_tags(RecordStepSize=0)
         vxd.set_data(morphology)
-        vxd.write(os.path.join(self.stor_dir, "robot_" + str(id)+ ".vxd")) #.vxd
+        vxd.write(os.path.join(self.stor_dir, "robot_" + str(id)+ ".vxd"))
 
     def simulate_generation(self):
 
         # Run voxcraft-sim as subprocess 
         voxcraft_out = subprocess.run([self.exec_dir, 
-                                       '-i', self.stor_dir, 
-                                       '-o', os.path.join(self.stor_dir, "results.xml"), 
-                                       '-w', self.node_dir, '-f'], 
-                                       encoding='utf-8', stdout=subprocess.PIPE)
+                                      '-i', self.stor_dir, 
+                                      '-o', os.path.join(self.stor_dir, "results.xml"), 
+                                      '-w', self.node_dir,'-f'], 
+                                      encoding='utf-8', stdout=subprocess.PIPE)
 
         with open(os.path.join(self.stor_dir, "generation.history"), 'w') as hist:
             hist.write(voxcraft_out.stdout)
@@ -52,11 +52,10 @@ class Simulation():
         with open(os.path.join(self.stor_dir, "results.xml"), 'r') as f:
             tree = etree.parse(f)
 
-        robots = tree.xpath("//detail/*")
-
-        robots_s = sorted(robots, key=lambda r: int(str(r.tag).split("robot_")[1]))
+        # Sort robots by filename
+        robots = sorted(tree.xpath("//detail/*"), key=lambda r: int(str(r.tag).split("robot_")[1]))
         
-        fitnesses = [float(r.xpath("fitness_score")[0].text) for r in robots_s]
+        fitnesses = [float(r.xpath("fitness_score")[0].text) for r in robots]
 
         return fitnesses
         

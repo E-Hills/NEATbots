@@ -11,3 +11,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Run simulation only
+# ./neatbots/voxcraft/voxcraft-sim -i ./neatbots/voxcraft/generation -o ./neatbots/voxcraft/generation/results.xml -w ./neatbots/voxcraft/vx3_node_worker -f

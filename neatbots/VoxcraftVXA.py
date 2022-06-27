@@ -72,15 +72,21 @@ class VXA:
         etree.SubElement(sub, "mtVAR").text = 't'
         etree.SubElement(sub, "mtCONST").text = str(self.SimTime)
 
-        # Fitness Function
+        # Fitness Function (Euclidian Distance)
         fitness = etree.SubElement(simulator, "FitnessFunction")
-        add = etree.SubElement(fitness, "mtADD")
-        mul = etree.SubElement(add, 'mtMUL')
-        etree.SubElement(mul, "mtVAR").text = 'x'
-        etree.SubElement(mul, "mtVAR").text = 'x'
-        mul2 = etree.SubElement(add, 'mtMUL')
-        etree.SubElement(mul2, "mtVAR").text = 'y'
-        etree.SubElement(mul2, "mtVAR").text = 'y'
+
+        add_2 = etree.SubElement(fitness, "mtADD")
+        mul_3 = etree.SubElement(add_2, 'mtMUL')
+        etree.SubElement(mul_3, "mtVAR").text = 'z'
+        etree.SubElement(mul_3, "mtVAR").text = 'z'
+
+        add_1 = etree.SubElement(add_2, "mtADD")
+        mul_l = etree.SubElement(add_1, 'mtMUL')
+        etree.SubElement(mul_l, "mtVAR").text = 'x'
+        etree.SubElement(mul_l, "mtVAR").text = 'x'
+        mul_2 = etree.SubElement(add_1, 'mtMUL')
+        etree.SubElement(mul_2, "mtVAR").text = 'y'
+        etree.SubElement(mul_2, "mtVAR").text = 'y'
 
         history = etree.SubElement(simulator, "RecordHistory")
         etree.SubElement(history, "RecordStepSize").text = str(self.RecordStepSize) #Capture image every 100 time steps
