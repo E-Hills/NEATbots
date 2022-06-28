@@ -24,9 +24,9 @@ class Evolution:
 
         # Define the seed genomes on which all genomes are based
         self.morphology_seed_gen = NEAT.Genome(0, 4, 8, 1, False, 
-                                               NEAT.ActivationFunction.RELU, NEAT.ActivationFunction.UNSIGNED_SIGMOID, 1, self.params, 1)
+                                               NEAT.ActivationFunction.UNSIGNED_SIGMOID, NEAT.ActivationFunction.RELU, 1, self.params, 1)
         self.controlsys_seed_gen = NEAT.Genome(1, 4, 8, 2, False, 
-                                               NEAT.ActivationFunction.RELU, NEAT.ActivationFunction.UNSIGNED_SIGMOID, 1, self.params, 1)
+                                               NEAT.ActivationFunction.UNSIGNED_SIGMOID, NEAT.ActivationFunction.RELU, 1, self.params, 1)
 
         # Specify initial population properties
         self.morphology_pop = NEAT.Population(self.morphology_seed_gen, self.params, True, 1.0, 0) # 0 is the RNG seed
