@@ -75,12 +75,14 @@ class VXA:
         # Fitness Function (Euclidian Distance)
         fitness = etree.SubElement(simulator, "FitnessFunction")
 
-        add_2 = etree.SubElement(fitness, "mtADD")
-        mul_3 = etree.SubElement(add_2, 'mtMUL')
-        etree.SubElement(mul_3, "mtVAR").text = 'z'
-        etree.SubElement(mul_3, "mtVAR").text = 'z'
+        #add_2 = etree.SubElement(fitness, "mtADD")
+        #mul_3 = etree.SubElement(add_2, 'mtMUL')
+        #etree.SubElement(mul_3, "mtVAR").text = 'z'
+        #etree.SubElement(mul_3, "mtVAR").text = 'z'
 
-        add_1 = etree.SubElement(add_2, "mtADD")
+        #abs_1 = etree.SubElement(fitness, "mtABS")
+
+        add_1 = etree.SubElement(fitness, "mtADD")
         mul_l = etree.SubElement(add_1, 'mtMUL')
         etree.SubElement(mul_l, "mtVAR").text = 'x'
         etree.SubElement(mul_l, "mtVAR").text = 'x'

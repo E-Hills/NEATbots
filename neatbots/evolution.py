@@ -1,4 +1,5 @@
 import os
+from typing import Dict, List
 import numpy as np
 import MultiNEAT as NEAT
 from neatbots.simulation import Simulation
@@ -9,28 +10,37 @@ class Evolution:
         # Set simulation environment for this evolution process
         self.sim = sim
 
-        # Set Width, Height and Depth of organism space
-        self.W = 4
-        self.H = 4
-        self.D = 4
-
+        # Generation of evolution to perform
         self.generations = generations
 
         # Retrieve defaults and set non-default parameters
         self.params = NEAT.Parameters() 
         self.params.PopulationSize = pop_size
 
+        # Set Width, Height and Depth of organism space
+        self.W = 4
+        self.H = 4
+        self.D = 4
+
         # Define the seed genomes on which all genomes are based
         self.morphology_seed_gen = NEAT.Genome(0, 4, 8, 1, False, 
-                                               NEAT.ActivationFunction.RELU, NEAT.ActivationFunction.UNSIGNED_SIGMOID, 1, self.params, 1) 
+                                               NEAT.ActivationFunction.RELU, NEAT.ActivationFunction.UNSIGNED_SIGMOID, 1, self.params, 1)
         self.controlsys_seed_gen = NEAT.Genome(1, 4, 8, 2, False, 
-                                               NEAT.ActivationFunction.RELU, NEAT.ActivationFunction.UNSIGNED_SIGMOID, 1, self.params, 1) 
+                                               NEAT.ActivationFunction.RELU, NEAT.ActivationFunction.UNSIGNED_SIGMOID, 1, self.params, 1)
 
         # Specify initial population properties
         self.morphology_pop = NEAT.Population(self.morphology_seed_gen, self.params, True, 1.0, 0) # 0 is the RNG seed
         self.controlsys_pop = NEAT.Population(self.controlsys_seed_gen, self.params, True, 1.0, 0) # 0 is the RNG seed
 
-    def construct_morphology(self, ind_id, morphology_gen):
+    # Inner class Organism, acts as a wrapper for an organisms morphology and control
+    # which are evolved in tandem, but as seperate genomes.
+    class Organism:
+        def __init__(self, id, morphology_gen: NEAT.Genome, controlsys_gen: NEAT.Genome):
+            self.id = id
+            self.morphology_gen = morphology_gen
+            self.controlsys_gen = controlsys_gen
+
+    def generate_morphology(self, morphology_gen):
 
         # Create neural network for soft-body generation
         morphology_net = NEAT.NeuralNetwork()
@@ -40,7 +50,7 @@ class Evolution:
                                      self.H,
                                      self.D))
 
-        # Construct soft body by querying all positions
+        # Generate soft body by querying all positions
         for x in range(self.W):
             for y in range(self.H):
                 for z in range(self.D):
@@ -59,44 +69,59 @@ class Evolution:
                         print("ERROR: Output is outside of material range") 
                     morphology[x, y, z] = wholed
 
-        self.sim.encode_morphology(ind_id, morphology)
+        return morphology
 
-    def construct_controlsys(self, ind_id, controlsys_gen):
+    def generate_controlsys(self, controlsys_gen):
 
         # Create neural network for querying voxel actuation ### NOT YET IMPLEMENTED ###
         controlsys_net = NEAT.NeuralNetwork()
         controlsys_gen.BuildPhenotype(controlsys_net)
 
+    def evaluate_generation(self, organisms: Dict[str,Organism], label, step_size):
+
+        # Iterate over all organisms in the population
+        for key in organisms.keys():
+            # Generate and encode morphology
+            org_morphology = self.generate_morphology(organisms[key].morphology_gen)
+            self.sim.encode_morphology(label, key, org_morphology, step_size)
+            # Generate control system
+            #self.generate_controlsys(contr_gen)
+
+        # Simulate generation and return fitness scores for all organisms
+        fitness_scores = self.sim.simulate_generation()
+
+        # Set fitness scores for all organisms
+        for key in organisms.keys():
+            organisms[key].morphology_gen.SetFitness(fitness_scores[key])
+            #org.controlsys_gen.SetFitness(fitness_scores[org.id])
+
+        return organisms
+
     def evolve(self):
+
+        elite_orgs = dict()
 
         # Generational evolution loop
         for generation in range(self.generations):
-            os.system("clear")
+            #os.system("clear")
 
-            # Retrieve all individuals in the population
-            morphology_genomes = NEAT.GetGenomeList(self.morphology_pop)
-            controlsys_genomes = NEAT.GetGenomeList(self.controlsys_pop)
+            # Retrieve all organisms in the population by combining morphology and control system genomes
+            joined_orgs = {str(generation + 1) +"-"+ str(id + 1) : self.Organism(id, morphology_gen, controlsys_gen) 
+                           for id, (morphology_gen, controlsys_gen) in 
+                           enumerate(zip(NEAT.GetGenomeList(self.morphology_pop), NEAT.GetGenomeList(self.controlsys_pop)))}
 
-            # Construct morphology and control system for all individuals
-            for i, (morph_gen, contr_gen) in enumerate(zip(morphology_genomes, controlsys_genomes)):
-                self.construct_morphology(i, morph_gen)
-                #self.construct_controlsys(i, contr_gen)
-
-            print("\nSimulating generation:", generation+1)
-
-            # Simulate generation and return fitness scores for all individuals
-            fitness_scores = self.sim.simulate_generation()
-
-            # Set fitness scores for all individuals
-            for i, (morph_gen, contr_gen) in enumerate(zip(morphology_genomes, controlsys_genomes)):
-                morph_gen.SetFitness(fitness_scores[i])
-                #contr_gen.SetFitness(fitness_scores[i])
-
-            print("Done")
-            # Record evolution progress, elites and so on
-            ### NOT YET IMPLEMENTED ###
+            # Build, simulate and score all organisms
+            self.sim.store_generation("generation")
+            scored_orgs = self.evaluate_generation(joined_orgs, "basic", 0)
+            
+            # Store highest performing organism for this generation
+            elite_key = max(scored_orgs.keys(), key=lambda k: getattr(scored_orgs[k], 'morphology_gen').GetFitness())
+            elite_orgs[elite_key] = scored_orgs[elite_key]
 
             # Move to the next generation
             self.morphology_pop.Epoch()
             #self.controlsys_pop.Epoch()
 
+        # Re-simulate elites, recording history file
+        self.sim.store_generation("elites")
+        self.evaluate_generation(elite_orgs, "elite", 100)
