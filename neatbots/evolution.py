@@ -18,9 +18,9 @@ class Evolution:
         self.params.PopulationSize = pop_size
 
         # Set Width, Height and Depth of organism space
-        self.W = 2
-        self.H = 2
-        self.D = 2
+        self.W = 4
+        self.H = 4
+        self.D = 4
 
         # Define the seed genomes on which all genomes are based
         self.morphology_seed_gen = NEAT.Genome(0, 4, 8, 1, False, 
@@ -76,18 +76,21 @@ class Evolution:
         controlsys_net = NEAT.NeuralNetwork()
         controlsys_gen.BuildPhenotype(controlsys_net)
 
-    def evaluate_generation(self, organisms: Dict[str,Organism], label, step_size):
+    def evaluate_generation(self, organisms: Dict[str,Organism], generation_dir, label, step_size):
+
+        # Create directory to store the generation
+        generation_path = self.sim.store_generation(generation_dir)
 
         # Iterate over all organisms in the population
         for key in organisms.keys():
             # Generate and encode morphology
             org_morphology = self.generate_morphology(organisms[key].morphology_gen)
-            self.sim.encode_morphology(label, key, org_morphology, step_size)
+            self.sim.encode_morphology(org_morphology, generation_path, label, key, step_size)
             # Generate control system
             #self.generate_controlsys(contr_gen)
 
         # Simulate generation and return fitness scores for all organisms
-        fitness_scores = self.sim.simulate_generation()
+        fitness_scores = self.sim.simulate_generation(generation_dir)
 
         # Set fitness scores for all organisms
         for key in organisms.keys():
@@ -110,8 +113,7 @@ class Evolution:
                            enumerate(zip(NEAT.GetGenomeList(self.morphology_pop), NEAT.GetGenomeList(self.controlsys_pop)))}
 
             # Build, simulate and score all organisms
-            self.sim.store_generation("generation")
-            scored_orgs = self.evaluate_generation(joined_orgs, "basic", 0)
+            scored_orgs = self.evaluate_generation(joined_orgs, "generation_"+str(generation+1), "basic", 0)
             
             # Store highest performing organism for this generation
             elite_key = max(scored_orgs.keys(), key=lambda k: getattr(scored_orgs[k], 'morphology_gen').GetFitness())
@@ -122,5 +124,4 @@ class Evolution:
             #self.controlsys_pop.Epoch()
 
         # Re-simulate elites, recording history file
-        self.sim.store_generation("elites")
-        self.evaluate_generation(elite_orgs, "elite", 100)
+        self.evaluate_generation(elite_orgs, "elites", "elite", 100)
