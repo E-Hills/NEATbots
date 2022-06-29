@@ -1,4 +1,4 @@
-import os, subprocess
+import os, shutil, subprocess
 
 from lxml import etree
 from neatbots.VoxcraftVXA import VXA
@@ -30,26 +30,20 @@ class Simulation():
 
     def store_generation(self, dir: str):
 
-        # Fork os to force operation waiting
-        pid = os.fork()
+        # Set new storage directory
+        self.stor_dir = os.path.join(self.file_dir, 'voxcraft/' + dir)
+        # Make storage directory if not already made
+        os.makedirs(self.stor_dir, exist_ok=True)
 
-        if pid:
-            # Wait for completion
-            os.wait()
-            return
-        else:
-            # Set new storage directory
-            self.stor_dir = os.path.join(self.file_dir, 'voxcraft/' + dir)
-
-            # Make storage directory if not already made
-            os.makedirs(self.stor_dir, exist_ok=True)
-            # Ensure directory is empty
-            for i in os.listdir(self.stor_dir):
-                print(i)
-                os.remove(os.path.join(self.stor_dir,i))
-
-            # Store simulation settings and materials
-            self.vxa.write(os.path.join(self.stor_dir, "base.vxa"))
+        # Ensure directory is empty
+        for root, dirs, files in os.walk(self.stor_dir):
+            for f in files:
+                os.unlink(os.path.join(root, f))
+            for d in dirs:
+                shutil.rmtree(os.path.join(root, d))
+                
+        # Store simulation settings and materials
+        self.vxa.write(os.path.join(self.stor_dir, "base.vxa"))
 
     def simulate_generation(self):
 
