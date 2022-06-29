@@ -113,6 +113,7 @@ class Evolution:
                            enumerate(zip(NEAT.GetGenomeList(self.morphology_pop), NEAT.GetGenomeList(self.controlsys_pop)))}
 
             # Build, simulate and score all organisms
+            print("Simulating generation: "+str(generation+1))
             scored_orgs = self.evaluate_generation(joined_orgs, "generation_"+str(generation+1), "basic", 0)
             
             # Store highest performing organism for this generation
