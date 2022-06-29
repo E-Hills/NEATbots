@@ -18,9 +18,9 @@ class Evolution:
         self.params.PopulationSize = pop_size
 
         # Set Width, Height and Depth of organism space
-        self.W = 4
-        self.H = 4
-        self.D = 4
+        self.W = 2
+        self.H = 2
+        self.D = 2
 
         # Define the seed genomes on which all genomes are based
         self.morphology_seed_gen = NEAT.Genome(0, 4, 8, 1, False, 
@@ -35,8 +35,7 @@ class Evolution:
     # Inner class Organism, acts as a wrapper for an organisms morphology and control
     # which are evolved in tandem, but as seperate genomes.
     class Organism:
-        def __init__(self, id, morphology_gen: NEAT.Genome, controlsys_gen: NEAT.Genome):
-            self.id = id
+        def __init__(self, morphology_gen: NEAT.Genome, controlsys_gen: NEAT.Genome):
             self.morphology_gen = morphology_gen
             self.controlsys_gen = controlsys_gen
 
@@ -106,8 +105,8 @@ class Evolution:
             #os.system("clear")
 
             # Retrieve all organisms in the population by combining morphology and control system genomes
-            joined_orgs = {str(generation + 1) +"-"+ str(id + 1) : self.Organism(id, morphology_gen, controlsys_gen) 
-                           for id, (morphology_gen, controlsys_gen) in 
+            joined_orgs = {str(generation + 1) +"-"+ str(i + 1) : self.Organism(morphology_gen, controlsys_gen) 
+                           for i, (morphology_gen, controlsys_gen) in 
                            enumerate(zip(NEAT.GetGenomeList(self.morphology_pop), NEAT.GetGenomeList(self.controlsys_pop)))}
 
             # Build, simulate and score all organisms

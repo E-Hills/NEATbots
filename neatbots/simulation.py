@@ -29,17 +29,26 @@ class Simulation():
         vxd.write(os.path.join(self.stor_dir, label + "_" + str(id) + ".vxd"))
 
     def store_generation(self, dir: str):
-        # Set new storage directory
-        self.stor_dir = os.path.join(self.file_dir, 'voxcraft/' + dir)
 
-        # Make storage directory if not already made
-        os.makedirs(self.stor_dir, exist_ok=True)
-        # Ensure directory is empty
-        for i in os.listdir(self.stor_dir):
-            os.remove(os.path.join(self.stor_dir,i))
+        # Fork os to force operation waiting
+        pid = os.fork()
 
-        # Store simulation settings and materials
-        self.vxa.write(os.path.join(self.stor_dir, "base.vxa"))
+        if pid:
+            # Wait for completion
+            os.wait()
+            return
+        else:
+            # Set new storage directory
+            self.stor_dir = os.path.join(self.file_dir, 'voxcraft/' + dir)
+
+            # Make storage directory if not already made
+            os.makedirs(self.stor_dir, exist_ok=True)
+            # Ensure directory is empty
+            for i in os.listdir(self.stor_dir):
+                os.remove(os.path.join(self.stor_dir,i))
+
+            # Store simulation settings and materials
+            self.vxa.write(os.path.join(self.stor_dir, "base.vxa"))
 
     def simulate_generation(self):
 
