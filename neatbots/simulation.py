@@ -45,6 +45,7 @@ class Simulation():
             os.makedirs(self.stor_dir, exist_ok=True)
             # Ensure directory is empty
             for i in os.listdir(self.stor_dir):
+                print(i)
                 os.remove(os.path.join(self.stor_dir,i))
 
             # Store simulation settings and materials
@@ -56,7 +57,8 @@ class Simulation():
         voxcraft_out = subprocess.run([self.exec_dir,
                                       '-i', self.stor_dir, 
                                       '-o', os.path.join(self.stor_dir, "results.xml"), 
-                                      '-w', self.node_dir,'-f'], 
+                                      '-w', self.node_dir,
+                                      '--force'], 
                                       stdout=subprocess.PIPE)
 
         # Record history
