@@ -114,6 +114,7 @@ class Evolution:
 
             # Build, simulate and score all organisms
             print("Simulating generation: "+str(generation+1))
+            # Don't record history for these ones
             scored_orgs = self.evaluate_generation(joined_orgs, "generation_"+str(generation+1), "basic", 0)
             
             # Store highest performing organism for this generation
@@ -123,6 +124,6 @@ class Evolution:
             # Move to the next generation
             self.morphology_pop.Epoch()
             #self.controlsys_pop.Epoch()
-
+            
         # Re-simulate elites, recording history file
         self.evaluate_generation(elite_orgs, "elites", "elite", 100)

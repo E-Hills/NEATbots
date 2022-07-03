@@ -1,5 +1,6 @@
 /conda_env
 /neatbots/voxcraft
+/neatbots/generations
 /workspace
 /.vscode
 *.py[co]

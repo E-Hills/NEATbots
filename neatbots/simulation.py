@@ -11,7 +11,7 @@ class Simulation():
         self.file_path = os.path.dirname(os.path.abspath(__file__))
         self.exec_path = os.path.join(self.file_path, 'voxcraft/voxcraft-sim')
         self.node_path = os.path.join(self.file_path, 'voxcraft/vx3_node_worker')
-        self.stor_path = os.path.join(self.file_path, 'voxcraft/generations')
+        self.stor_path = os.path.join(self.file_path, 'generations')
 
         # Clear the storage directory
         self.empty_directory(self.stor_path)
@@ -38,10 +38,10 @@ class Simulation():
             for d in dirs:
                 shutil.rmtree(os.path.join(root, d))
 
-    def store_generation(self, generation_path: str):
+    def store_generation(self, generation_dir: str):
 
         # Make new storage directory
-        gene_path = os.path.join(self.stor_path, generation_path)
+        gene_path = os.path.join(self.stor_path, generation_dir)
         # Make storage directory if not already made
         os.makedirs(gene_path, exist_ok=True)
         # Ensure directory is empty
@@ -61,11 +61,19 @@ class Simulation():
                                       '-o', os.path.join(generation_path, "results.xml"), 
                                       '-w', self.node_path,
                                       '--force'], 
-                                      stdout=subprocess.PIPE)
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE)
 
-        # Record history
-        with open(os.path.join(generation_path, "generation.history"), 'w') as hist:
-            hist.write(voxcraft_out.stdout.decode('utf-8'))
+        print(voxcraft_out.stderr.decode('utf-8'))
+
+        all_hist = voxcraft_out.stdout.decode('utf-8')
+        list_hist = all_hist.split("HISTORY_SPLIT")[1:]
+
+        for hist in list_hist:
+            # Record history
+            name = hist[hist.find("runs: ")+len("runs: "):hist.rfind(".vxd.")]
+            with open(os.path.join(generation_path, str(name) + ".history"), 'w') as f:
+                f.write(hist)
 
         # Return fitness scores
         with open(os.path.join(generation_path, "results.xml"), 'r') as f:
