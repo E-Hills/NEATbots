@@ -66,14 +66,19 @@ class Simulation():
 
         print(voxcraft_out.stderr.decode('utf-8'))
 
-        all_hist = voxcraft_out.stdout.decode('utf-8')
+        all_hist = voxcraft_out.stdout.decode('unicode_escape').encode('utf-8').decode('utf-8')
         list_hist = all_hist.split("HISTORY_SPLIT")[1:]
 
-        for hist in list_hist:
-            # Record history
-            name = hist[hist.find("runs: ")+len("runs: "):hist.rfind(".vxd.")]
-            with open(os.path.join(generation_path, str(name) + ".history"), 'w') as f:
-                f.write(hist)
+        if (len(list_hist) > 0):
+            for hist in list_hist:
+                # Record history
+                name = hist[hist.find("runs: ")+len("runs: "):hist.rfind(".vxd.")]
+                with open(os.path.join(generation_path, str(name) + ".history"), 'w') as f:
+                    f.write(hist)
+        else:
+            with open(os.path.join(generation_path, "execution_log.txt"), 'w') as f:
+                f.write(all_hist)
+        
 
         # Return fitness scores
         with open(os.path.join(generation_path, "results.xml"), 'r') as f:
