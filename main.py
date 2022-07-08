@@ -4,8 +4,10 @@ from neatbots.simulation import Simulation
 from neatbots.evolution import Evolution
 
 def main():
-    main_sim = Simulation(heap_size=0.5)
-    main_evo = Evolution(main_sim, 1, 1)
+    main_sim = Simulation("./voxcraft-sim/voxcraft-sim", "./voxcraft-sim/vx3_node_worker", "./generations",
+                          heap_size=0.6)
+    main_evo = Evolution(main_sim, 1, 1, 1, 
+                         2, 1)
 
     main_evo.evolve()
 

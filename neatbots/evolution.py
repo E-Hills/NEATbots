@@ -1,11 +1,11 @@
 import os
-from typing import Dict, List
+from typing import Dict
 import numpy as np
 import MultiNEAT as NEAT
 from neatbots.simulation import Simulation
 
 class Evolution:
-    def __init__(self, sim: Simulation, generations: int, pop_size: int):
+    def __init__(self, sim: Simulation, W:int, H:int, D:int, generations: int, pop_size: int):
 
         # Set simulation environment for this evolution process
         self.sim = sim
@@ -18,9 +18,9 @@ class Evolution:
         self.params.PopulationSize = pop_size
 
         # Set Width, Height and Depth of organism space
-        self.W = 4
-        self.H = 4
-        self.D = 4
+        self.W = W
+        self.H = H
+        self.D = D
 
         # Define the seed genomes on which all genomes are based
         self.morphology_seed_gen = NEAT.Genome(0, 4, 8, 1, False, 
@@ -90,7 +90,7 @@ class Evolution:
             #self.generate_controlsys(contr_gen)
 
         # Simulate generation and return fitness scores for all organisms
-        fitness_scores = self.sim.simulate_generation(generation_dir)
+        fitness_scores, history_recording = self.sim.simulate_generation(generation_dir)
 
         # Set fitness scores for all organisms
         for key in organisms.keys():
@@ -98,6 +98,27 @@ class Evolution:
             #org.controlsys_gen.SetFitness(fitness_scores[org.id])
 
         return organisms
+
+    def record_generation(self, organisms: Dict[str,Organism], generation_dir, label, step_size):
+
+        # Create directory to store the generation
+        generation_path = self.sim.store_generation(generation_dir)
+        # Temporary directory as workaround for one at a time history recording
+        temporary_path = self.sim.store_generation("history_temp")
+
+        # Iterate over all organisms in the population
+        for key in organisms.keys():
+            # Generate and encode morphology
+            org_morphology = self.generate_morphology(organisms[key].morphology_gen)
+            self.sim.encode_morphology(org_morphology, temporary_path, label, key, step_size)
+            # Generate control system
+            #self.generate_controlsys(contr_gen)
+            
+            # Simulate organism and return fitness scores for all organisms
+            fitness_scores, history_recording = self.sim.simulate_generation("history_temp")
+
+            with open(os.path.join(generation_path, label + "_" + str(key) + ".history"), "w") as f:
+                f.write(history_recording)
 
     def evolve(self):
 
@@ -126,4 +147,5 @@ class Evolution:
             #self.controlsys_pop.Epoch()
             
         # Re-simulate elites, recording history file
-        self.evaluate_generation(elite_orgs, "elites", "elite", 100)
+        print("Recording elites")
+        self.record_generation(elite_orgs, "elites", "elite", 100)

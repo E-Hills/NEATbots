@@ -1,6 +1,6 @@
-/conda_env
-/neatbots/voxcraft
-/neatbots/generations
-/workspace
 /.vscode
+/conda_env
+/generations
+/workspace
+/voxcraft-sim
 *.py[co]
