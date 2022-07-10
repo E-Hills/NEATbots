@@ -103,11 +103,11 @@ class Evolution:
 
         # Create directory to store the generation
         generation_path = self.sim.store_generation(generation_dir)
-        # Temporary directory as workaround for one at a time history recording
-        temporary_path = self.sim.store_generation("history_temp")
-
+        
         # Iterate over all organisms in the population
         for key in organisms.keys():
+            # Temporary directory as workaround for one at a time history recording
+            temporary_path = self.sim.store_generation("history_temp")
             # Generate and encode morphology
             org_morphology = self.generate_morphology(organisms[key].morphology_gen)
             self.sim.encode_morphology(org_morphology, temporary_path, label, key, step_size)
