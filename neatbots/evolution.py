@@ -114,13 +114,13 @@ class Evolution:
         """
 
         elite_orgs = dict()
-        evo_results = list()
+        gen_results = list()
+
+        # Record execution time for benchmarking
+        time_start = time.perf_counter()
 
         # Generational evolution loop
         for generation in range(self.gen_n):
-
-            # Time execution
-            time_start = time.perf_counter()
 
             # Create organisms from morphology and control system populations
             joined_orgs = self.construct_organisms(generation+1)
@@ -135,18 +135,27 @@ class Evolution:
             # Record generation results
             avg_fit = np.average([org.fitness for org in scored_orgs.values()])
             max_fit = scored_orgs[elite_key].fitness
-            exe_dur = time.perf_counter() - time_start
-            evo_results.append([generation+1, avg_fit, max_fit, exe_dur])
+            gen_results.append([generation+1, avg_fit, max_fit])
 
             # Select organisms to make a new population for the next generation
             self.morphology_pop.Epoch()
             #self.controlsys_pop.Epoch()
             
         # Re-simulate elites, recording history files
-        scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
+        #scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
 
-        # Format results as dataframe
-        return pd.DataFrame(evo_results, columns=["Generation", "Average Fitness", "Max Fitness", "Execution Time"])
+        # Calculate result metrics
+        evo_results = [0, 0, 0]
+        if (len(gen_results) > 1):
+            evo_results[0] = (gen_results[-1][1] - gen_results[0][1]) / len(gen_results)
+            evo_results[1] = ((gen_results[-1][1] - gen_results[-2][1]) - (gen_results[1][1] - gen_results[0][1])) / len(gen_results)
+            evo_results[2] = time.perf_counter() - time_start
+
+        # Format results as dataframes
+        fmt_gen_results = pd.DataFrame(gen_results, columns=["Generation", "Average Fitness", "Max Fitness"])
+        fmt_evo_results = pd.DataFrame([evo_results], columns=["Evo Speed", "Evo Acceleration", "Evo Duration"])
+
+        return fmt_gen_results, fmt_evo_results
         
 
         
