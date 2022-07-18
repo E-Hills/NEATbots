@@ -7,8 +7,8 @@ Does not yet include signaling parameters
 
 class VXA:
     
-    def __init__(self, HeapSize=0.5, EnableCilia=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8, SlowDampingZ=0.01,
-                EnableCollision=0, SimTime=5, TempPeriod=0.1, GravEnabled=1, GravAcc=-9.81, FloorEnabled=1, Lattice_Dim=0.01,
+    def __init__(self, HeapSize=0.25, EnableCilia=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8, SlowDampingZ=0.01,
+                EnableCollision=0, SimTime=0.5, TempPeriod=0.1, GravEnabled=1, GravAcc=-9.81, FloorEnabled=1, Lattice_Dim=0.01,
                 RecordStepSize=100, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, VaryTempEnabled=1, TempAmplitude=20, TempBase=25,
                 TempEnabled=1):
 
@@ -75,20 +75,20 @@ class VXA:
         # Fitness Function (Euclidian Distance)
         fitness = etree.SubElement(simulator, "FitnessFunction")
 
-        #add_2 = etree.SubElement(fitness, "mtADD")
-        #mul_3 = etree.SubElement(add_2, 'mtMUL')
-        #etree.SubElement(mul_3, "mtVAR").text = 'z'
-        #etree.SubElement(mul_3, "mtVAR").text = 'z'
+        abs_1 = etree.SubElement(fitness, "mtABS")
+        add_1 = etree.SubElement(abs_1, "mtADD")
 
-        #abs_1 = etree.SubElement(fitness, "mtABS")
-
-        add_1 = etree.SubElement(fitness, "mtADD")
         mul_l = etree.SubElement(add_1, 'mtMUL')
         etree.SubElement(mul_l, "mtVAR").text = 'x'
         etree.SubElement(mul_l, "mtVAR").text = 'x'
         mul_2 = etree.SubElement(add_1, 'mtMUL')
         etree.SubElement(mul_2, "mtVAR").text = 'y'
         etree.SubElement(mul_2, "mtVAR").text = 'y'
+
+        # MODIFICATION
+        mul_3 = etree.SubElement(add_1, 'mtMUL')
+        etree.SubElement(mul_3, "mtVAR").text = 'z'
+        etree.SubElement(mul_3, "mtVAR").text = 'z'
 
         history = etree.SubElement(simulator, "RecordHistory")
         etree.SubElement(history, "RecordStepSize").text = str(self.RecordStepSize) #Capture image every 100 time steps

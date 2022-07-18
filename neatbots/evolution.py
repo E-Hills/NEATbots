@@ -9,20 +9,22 @@ from neatbots.simulation import Simulation
 from neatbots.organism import Organism
 
 class Evolution:
-    '''Contains all methods and properties relevant to an evolution process.'''
+    """Contains all methods and properties relevant to an evolution process."""
 
     def __init__(self, sim: Simulation, gen_n: int, pop_s: int, W: int, H: int, D: int):
-        '''Constructs an Evolution object.
+        """Constructs an Evolution object.
 
-        sim (Simulation) : The simulation object to use when simulating the generations
-        gens (int) : The number of generations to evolve over
-        pop_s (int) : The size of each generations population
-        W (int) : The width of each organisms possible space
-        H (int) : The height of each organisms possible space
-        D (int) : The depth of each organisms possible space
+        Args:
+            sim (Simulation): The simulation object to use when simulating the generations
+            gen_n (int): The number of generations to evolve over
+            pop_s (int): The size of each generations population
+            W (int): The width of each organisms possible space
+            H (int): The height of each organisms possible space
+            D (int): The depth of each organisms possible space
 
-        return (Evolution) : Returns an Evolution object with the specified arguments 
-        '''
+        Returns:
+            (Evolution): Evolution object with the specified arguments
+        """
 
         # Set simulation environment for this evolution process
         self.sim = sim
@@ -49,7 +51,14 @@ class Evolution:
         self.controlsys_pop = NEAT.Population(self.controlsys_seed_genome, self.params, True, 1.0, 0) # 0 is the RNG seed
 
     def construct_organisms(self, pop_id):
-        '''Description'''
+        """Combines the genomes from morphology and control system populations, creating a single population of organisms.
+
+        Args:
+            pop_id (int): Population ID used for naming files
+
+        Returns:
+            (Dict[str, Organism]): Dictionary of organism IDs and organism objects
+        """
         
         # Combine morphology and control system genomes to create organisms
         joined_orgs = {str(pop_id) +"-"+ str(i + 1) : Organism(morphology_gen, controlsys_gen, self.W, self.H, self.D) 
@@ -59,17 +68,18 @@ class Evolution:
         return joined_orgs
 
     def evaluate_organisms(self, organisms: Dict[str, Organism], generation_dir: os.path, label: str, step_size: int):
-        '''Simulates all organisms in a population and calculates the fitness scores for each.
-
+        """Simulates all organisms in a population and calculates the fitness scores for each. \n
         Also records history files for step_size higher than 0, however, this is quite slow.
 
-        organisms (dict{str, Organism}) : Dictionary of organisms and their ids
-        generation_dir (str) : Name of folder to store encodings and results in
-        label (str) : Name given to each organism
-        step_size (int) : Number of steps to record in history file
+        Args:
+            organisms (Dict[str, Organism]): Dictionary of organisms and their ids
+            generation_dir (str): Name of folder to store encodings and results in
+            label (str): Name given to each organism
+            step_size (int): Number of steps to record in history file
 
-        return (dict{str, Organism}) : Input dict with the organisms scored based upon their fitness
-        '''
+        Returns:
+            (Dict[str, Organism]): Input dict with the organisms scored based upon their fitness
+        """
         
         print("Simulating: " + generation_dir)
         
@@ -107,10 +117,11 @@ class Evolution:
 
 
     def evolve_organisms(self):
-        """Main generation loop for evolving organisms.
+        """Main generation-iteration loop for evolving organisms.
 
         Returns:
-            np.array: 2D numpy array containing per-generation results
+            (pd.Dataframe): Dataframe of metrics calculated per-generation 
+            (pd.Dataframe): Dataframe of metrics calculated for the whole evolution process
         """
 
         elite_orgs = dict()
@@ -142,7 +153,7 @@ class Evolution:
             #self.controlsys_pop.Epoch()
             
         # Re-simulate elites, recording history files
-        #scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
+        scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
 
         # Calculate result metrics
         evo_results = [0, 0, 0]

@@ -9,9 +9,10 @@ def main():
     EVO = Evolution(SIM, 1, 1, 
                     1, 1, 1)
 
-    results = EVO.evolve_organisms()
+    gen_results, evo_results = EVO.evolve_organisms()
 
-    print(results)
+    print(gen_results)
+    print(evo_results)
 
 if __name__ == "__main__":
     main()

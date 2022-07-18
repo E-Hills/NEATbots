@@ -1,3 +1,4 @@
+from typing import List
 import numpy as np
 import MultiNEAT as NEAT
 
@@ -5,13 +6,18 @@ class Organism:
     '''A wrapper for an organism composed of seperate genomes acting as a whole.'''
 
     def __init__(self, morphology_gen: NEAT.Genome, controlsys_gen: NEAT.Genome, W:int, H:int, D:int):
-        '''Constructs an Organism object.
+        """Constructs an Organism object.
 
-        morphology_gen (NEAT.Genome) : The morphology genome of the organism
-        controlsys_gen (NEAT.Genome) : The control system genome of the organism
+        Args:
+            morphology_gen (NEAT.Genome): The morphology genome of the organism
+            controlsys_gen (NEAT.Genome): The control system genome of the organism
+            W (int): The width of each organisms possible space
+            H (int): The height of each organisms possible space
+            D (int): The depth of each organisms possible space
 
-        return (Organism) : Returns an organism object with the specified arguments 
-        '''
+        Returns:
+            (Organism): Organism object with the specified arguments
+        """
 
         self.morphology_gen = morphology_gen
         self.controlsys_gen = controlsys_gen
@@ -23,14 +29,16 @@ class Organism:
         self.D = D
 
 
-    def generate_morphology(self, materials):
-        '''Builds the phenotype neural network of a morphology genome, and then queries the network
+    def generate_morphology(self, materials: List[int]):
+        """Builds the phenotype neural network of a morphology genome, and then queries the network
         for values to fill the organism space.
 
-        morphology_gen (NEAT.Genome) : The morphology genome of an organism
+        Args:
+            materials (List[int]): Array of all possible material types
 
-        return (int[]) : A 3D array of integers representing the material of each voxel in the organism
-        '''
+        Returns:
+            (List[int]): Array representing the material of each voxel in the organism
+        """
         
         # Create neural network for soft-body generation
         morphology_net = NEAT.NeuralNetwork()
@@ -62,19 +70,27 @@ class Organism:
         return morphology
 
     def generate_controlsys(self):
-        '''Builds the phenotype neural network of a control system genome, and then queries the network
+        """Builds the phenotype neural network of a control system genome, and then queries the network
         for values to fill the organism space.
 
-        controlsys_gen (NEAT.Genome) : The control system genome of an organism
+        Args:
+            NOT YET IMPLEMENTED
 
-        return () : NOT YET IMPLEMENTED
-        '''
+        Returns:
+            _type_: _description_
+        """
 
         # Create neural network for querying voxel actuation ### NOT YET IMPLEMENTED ###
         controlsys_net = NEAT.NeuralNetwork()
         self.controlsys_gen.BuildPhenotype(controlsys_net)
 
-    def set_fitnesses(self, fitness_score):
+    def set_fitnesses(self, fitness_score: float):
+        """Set a fitness score to both the morphology and control system genomes of an organism.
+
+        Args:
+            fitness_score (float): Fitness score to apply to all organisms
+        """
+
         self.controlsys_gen.SetFitness(fitness_score)
         self.morphology_gen.SetFitness(fitness_score)
         self.fitness = fitness_score
