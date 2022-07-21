@@ -2,14 +2,13 @@ import os, shutil, subprocess
 from typing import List
 
 from lxml import etree
-from inspect import getsourcefile
 from neatbots.VoxcraftVXA import VXA
 from neatbots.VoxcraftVXD import VXD
 
 class Simulation():
     """Contains all methods and properties relevant to simulating voxel-based organisms."""
 
-    def __init__(self, exec_path: os.path, node_path: os.path, stor_path: os.path, heap_size: float = 0.5):
+    def __init__(self, exec_path: os.path, node_path: os.path, stor_path: os.path, heap_size: float, sim_time: float):
         """Constructs a Simulation object.
 
         Args:
@@ -17,6 +16,7 @@ class Simulation():
             node_path (os.path): Relative path for the 'vx3_node_worker' executable
             stor_path (os.path): Relative path for the result files to be stored within
             heap_size (float): Percentage of GPU heap available for simulation use
+            sim_time (float): Duration of simulation process
 
         Returns:
             (Simulation): Simulation object with the specified arguments 
@@ -31,11 +31,14 @@ class Simulation():
         self.empty_directory(self.stor_path)
 
         # Configure simulation settings
-        self.vxa = VXA(RecordStepSize=0, HeapSize=heap_size, EnableExpansion=1, TempEnabled=1, VaryTempEnabled=1, TempPeriod=0.1, TempBase=25, TempAmplitude=20)
+        self.vxa = VXA(HeapSize=heap_size, SimTime=sim_time, EnableExpansion=1, TempEnabled=1, VaryTempEnabled=1, TempPeriod=0.1, TempBase=25, TempAmplitude=20)
 
         # Define material types
-        self.vxa.add_material(RGBA=(0,255,0), E=1e9, RHO=1e3) # passive
-        self.vxa.add_material(RGBA=(255,0,0), E=1e7, RHO=1e6, CTE=0.01) # active
+        self.materials = [
+                            0, # empty
+                            self.vxa.add_material(RGBA=(0,255,0), E=1e9, RHO=1e3), # passive
+                            self.vxa.add_material(RGBA=(255,0,0), E=1e7, RHO=1e6, CTE=0.01) # active
+                         ]
 
     def encode_morphology(self, morphology: List[int], generation_path: os.path, label: str, id: int, step_size: int = 0):
         """Encodes a 3D array of integers as an XML tree describing a soft-body robot and writes it as a .vxd file.
@@ -68,7 +71,7 @@ class Simulation():
                 shutil.rmtree(os.path.join(root, d))
 
     def store_generation(self, generation_dir: str):
-        """Creates a directory and stores the simulation setting within.
+        """Creates a directory and stores the simulation settings within.
 
         Args:
             generation_dir (str): Relative path of the directory to create

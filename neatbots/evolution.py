@@ -39,6 +39,10 @@ class Evolution:
         # Retrieve defaults and set non-default parameters
         self.params = NEAT.Parameters() 
         self.params.PopulationSize = pop_s
+        self.params.MaxSpecies = 1
+        self.params.AllowClones = False
+        self.params.SurvivalRate = 0.75
+        self.params.RouletteWheelSelection = True
 
         # Define the seed genomes on which all genomes are based
         self.morphology_seed_genome = NEAT.Genome(0, 4, 8, 1, False, 
@@ -81,15 +85,13 @@ class Evolution:
             (Dict[str, Organism]): Input dict with the organisms scored based upon their fitness
         """
         
-        print("Simulating: " + generation_dir)
-        
         # Create directory to store this generations populations of .vxd files
         generation_path = self.sim.store_generation(generation_dir)
 
         # Iterate over all organisms in the population
         for key in organisms.keys():
             # Generate and encode morphology
-            org_morphology = organisms[key].generate_morphology(2)
+            org_morphology = organisms[key].generate_morphology(self.sim.materials)
             self.sim.encode_morphology(org_morphology, generation_path, label, key, step_size)
             # Generate control system
             #org_controlsys = organisms[key].generate_controlsys()
@@ -116,8 +118,11 @@ class Evolution:
         return organisms
 
 
-    def evolve_organisms(self):
+    def evolve_organisms(self, rec_elites: bool = False):
         """Main generation-iteration loop for evolving organisms.
+
+        Args:
+            rec_elites (bool): Flag for recording elites
 
         Returns:
             (pd.Dataframe): Dataframe of metrics calculated per-generation 
@@ -132,6 +137,7 @@ class Evolution:
 
         # Generational evolution loop
         for generation in range(self.gen_n):
+            print(generation+1)
 
             # Create organisms from morphology and control system populations
             joined_orgs = self.construct_organisms(generation+1)
@@ -151,9 +157,10 @@ class Evolution:
             # Select organisms to make a new population for the next generation
             self.morphology_pop.Epoch()
             #self.controlsys_pop.Epoch()
-            
+
         # Re-simulate elites, recording history files
-        scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
+        if (rec_elites):
+            scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
 
         # Calculate result metrics
         evo_results = [0, 0, 0]

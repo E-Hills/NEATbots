@@ -55,17 +55,11 @@ class Organism:
                     # Pass X, Y, Z and Bias values to neural net
                     morphology_net.Input(np.array([x, y, z, 1.0]))
                     morphology_net.Activate()
-                    output = morphology_net.Output()[0]
-                    wholed = 0
-                    if output >= 0.0 and output < 0.33:
-                        wholed = 0
-                    elif output >= 0.33 and output <= 0.66:
-                        wholed = 1
-                    elif output > 0.66 and output <= 1.0:
-                        wholed = 2
-                    else:
-                        print("ERROR: Output is outside of material range") 
-                    morphology[x, y, z] = wholed
+                    b = morphology_net.Output()[0]
+                    c = round(morphology_net.Output()[0] * (len(materials) - 1))
+                    if (b >= 0.75):
+                        i = 0
+                    morphology[x, y, z] = c
 
         return morphology
 

@@ -9,7 +9,7 @@ class VXA:
     
     def __init__(self, HeapSize=0.25, EnableCilia=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8, SlowDampingZ=0.01,
                 EnableCollision=0, SimTime=0.5, TempPeriod=0.1, GravEnabled=1, GravAcc=-9.81, FloorEnabled=1, Lattice_Dim=0.01,
-                RecordStepSize=100, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, VaryTempEnabled=1, TempAmplitude=20, TempBase=25,
+                RecordStepSize=0, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, VaryTempEnabled=1, TempAmplitude=20, TempBase=25,
                 TempEnabled=1):
 
         root = etree.XML("<VXA></VXA>")
