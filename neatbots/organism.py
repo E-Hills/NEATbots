@@ -29,12 +29,12 @@ class Organism:
         self.D = D
 
 
-    def generate_morphology(self, materials: List[int]):
+    def generate_morphology(self, mat_no: int):
         """Builds the phenotype neural network of a morphology genome, and then queries the network
         for values to fill the organism space.
 
         Args:
-            materials (List[int]): Array of all possible material types
+            mat_no (int): Number of material types
 
         Returns:
             (List[int]): Array representing the material of each voxel in the organism
@@ -56,9 +56,7 @@ class Organism:
                     morphology_net.Input(np.array([x, y, z, 1.0]))
                     morphology_net.Activate()
                     b = morphology_net.Output()[0]
-                    c = round(morphology_net.Output()[0] * (len(materials) - 1))
-                    if (b >= 0.75):
-                        i = 0
+                    c = round(morphology_net.Output()[0] * (mat_no))
                     morphology[x, y, z] = c
 
         return morphology

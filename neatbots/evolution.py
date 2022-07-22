@@ -1,3 +1,4 @@
+import copy
 import os
 import time
 import numpy as np
@@ -91,28 +92,17 @@ class Evolution:
         # Iterate over all organisms in the population
         for key in organisms.keys():
             # Generate and encode morphology
-            org_morphology = organisms[key].generate_morphology(self.sim.materials)
-            self.sim.encode_morphology(org_morphology, generation_path, label, key, step_size)
+            org_morphology = organisms[key].generate_morphology(self.sim.vxa.NextMaterialID-1)
+            self.sim.encode_morphology(org_morphology, generation_path, str(label +"_"+ key), step_size)
             # Generate control system
             #org_controlsys = organisms[key].generate_controlsys()
 
-            # Special case for recording history files
-            if (step_size > 0):
-                # Intermediate folder for storing organism encodings
-                temporary_path = self.sim.store_generation("history_temp")
-                # Encode morphology in tempory folder
-                self.sim.encode_morphology(org_morphology, temporary_path, label, key, step_size)
-                # Individually simulate organism to return its history file
-                fitness_scores, history_recording = self.sim.simulate_generation(temporary_path)
-                # Write the history file
-                with open(os.path.join(generation_path, label + "_" + str(key) + ".history"), "w") as f:
-                    f.write(history_recording)
-
         # Batch simulate the population and return fitness scores for all organisms
-        fitness_scores, history_recording = self.sim.simulate_generation(generation_path)
+        fitness_scores = self.sim.simulate_generation(generation_path)
 
-        # Set fitness scores for all organisms
+        # Iterate over all results for the population
         for key in organisms.keys():
+            # Set fitness scores for all organisms
             organisms[key].set_fitnesses(fitness_scores[key])
 
         return organisms
@@ -147,7 +137,7 @@ class Evolution:
 
             # Store highest performing organism for this generation
             elite_key = max(scored_orgs.keys(), key=lambda k: getattr(scored_orgs[k], 'fitness'))
-            elite_orgs[elite_key] = scored_orgs[elite_key]
+            elite_orgs[elite_key] = copy.deepcopy(scored_orgs[elite_key])
 
             # Record generation results
             avg_fit = np.average([org.fitness for org in scored_orgs.values()])
