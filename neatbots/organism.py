@@ -29,12 +29,12 @@ class Organism:
         self.D = D
 
 
-    def generate_morphology(self, mat_no: int):
+    def generate_morphology(self, materials: List[int]):
         """Builds the phenotype neural network of a morphology genome, and then queries the network
         for values to fill the organism space.
 
         Args:
-            mat_no (int): Number of material types
+            materials (List[int]): Array of organism-usable material types
 
         Returns:
             (List[int]): Array representing the material of each voxel in the organism
@@ -49,15 +49,18 @@ class Organism:
                                      self.D))
 
         # Generate soft body by querying all positions
-        for x in range(self.W):
+        for z in range(self.W):
             for y in range(self.H):
-                for z in range(self.D):
+                for x in range(self.D):
                     # Pass X, Y, Z and Bias values to neural net
                     morphology_net.Input(np.array([x, y, z, 1.0]))
                     morphology_net.Activate()
-                    b = morphology_net.Output()[0]
-                    c = round(morphology_net.Output()[0] * (mat_no))
-                    morphology[x, y, z] = c
+                    normal_out = morphology_net.Output()[0]
+                    #a = normal_out
+                    #b = normal_out * (len(materials))
+                    #c = int(normal_out * (len(materials)))
+                    mapped_out = materials[int(normal_out * (len(materials)))]
+                    morphology[x, y, z] = mapped_out
 
         return morphology
 

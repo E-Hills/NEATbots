@@ -5,15 +5,16 @@ from neatbots.VoxcraftVXA import VXA
 def main():
 
     # VXA (Simulation settings class)
-    vxa = VXA(HeapSize=0.6, SimTime=3.0, EnableExpansion=1, TempEnabled=1, 
-              VaryTempEnabled=1, TempPeriod=0.1, TempBase=25, TempAmplitude=20)
-    # Define materials within simulation
-    # Unspecified, material0 is empty space
-    vxa.add_material(RGBA=(0,255,0), E=1e9, RHO=1e3), # passive
-    vxa.add_material(RGBA=(255,0,0), E=1e7, RHO=1e6, CTE=0.01) # active
+    vxa = VXA(HeapSize=0.6, SimTime=0.1, EnableExpansion=1, TempEnabled=1, 
+             VaryTempEnabled=1, TempPeriod=0.1, TempBase=25, TempAmplitude=20)
+
+    #vxa.add_material(RGBA=(0,255,0), E=1e9, RHO=1e3) # passive
+    #vxa.add_material(RGBA=(255,0,0), E=1e7, RHO=1e6, CTE=0.01) # active
     
     # Simulation object
-    sim = Simulation("./voxcraft-sim/voxcraft-sim", "./voxcraft-sim/vx3_node_worker", "./generations", vxa)
+    sim = Simulation("./voxcraft-sim/voxcraft-sim", "./voxcraft-sim/vx3_node_worker", "./generations", vxa, "./gyms/gym_02.vxc")
+    #sim = Simulation("./voxcraft-sim/voxcraft-sim", "./voxcraft-sim/vx3_node_worker", "./generations", vxa)
+    
     # Evolution object
     evo = Evolution(sim, 1, 1, 
                     1, 1, 1)
@@ -27,4 +28,4 @@ if __name__ == "__main__":
     main()
 
 # Run simulation only
-# ./voxcraft-sim -i ./generations -o ./generations/results.xml -w ./voxcraft-sim/vx3_node_worker -f
+# ./voxcraft-sim/voxcraft-sim -i ./generations/generation_X -o ./generations/generation_X/results.xml -w ./voxcraft-sim/vx3_node_worker -f

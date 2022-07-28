@@ -53,7 +53,7 @@ class VXA:
         # Simulator
         simulator = etree.SubElement(root, "Simulator")
         etree.SubElement(simulator, "EnableCilia").text = str(self.EnableCilia)
-        etree.SubElement(simulator, "EnableExpansion").text = str(self.EnableExpansion) # 0 only contraction, 1 is contration + expansion
+        etree.SubElement(simulator, "EnableExpansion").text = str(self.EnableExpansion) # 0 only contraction, 1 is contraction + expansion
 
         integration = etree.SubElement(simulator, "Integration")
         etree.SubElement(integration, "DtFrac").text = str(self.DtFrac)
@@ -75,20 +75,24 @@ class VXA:
         # Fitness Function (Euclidian Distance)
         fitness = etree.SubElement(simulator, "FitnessFunction")
 
-        abs_1 = etree.SubElement(fitness, "mtABS")
-        add_1 = etree.SubElement(abs_1, "mtADD")
+        # (Euclidian Distance)
+        # abs_1 = etree.SubElement(fitness, "mtABS")
+        # add_1 = etree.SubElement(abs_1, "mtADD")
 
-        mul_l = etree.SubElement(add_1, 'mtMUL')
-        etree.SubElement(mul_l, "mtVAR").text = 'x'
-        etree.SubElement(mul_l, "mtVAR").text = 'x'
-        mul_2 = etree.SubElement(add_1, 'mtMUL')
-        etree.SubElement(mul_2, "mtVAR").text = 'y'
-        etree.SubElement(mul_2, "mtVAR").text = 'y'
+        # mul_l = etree.SubElement(add_1, 'mtMUL')
+        # etree.SubElement(mul_l, "mtVAR").text = 'x'
+        # etree.SubElement(mul_l, "mtVAR").text = 'x'
+        # mul_2 = etree.SubElement(add_1, 'mtMUL')
+        # etree.SubElement(mul_2, "mtVAR").text = 'y'
+        # etree.SubElement(mul_2, "mtVAR").text = 'y'
 
-        # MODIFICATION
-        mul_3 = etree.SubElement(add_1, 'mtMUL')
-        etree.SubElement(mul_3, "mtVAR").text = 'z'
-        etree.SubElement(mul_3, "mtVAR").text = 'z'
+        # mul_3 = etree.SubElement(add_1, 'mtMUL')
+        # etree.SubElement(mul_3, "mtVAR").text = 'z'
+        # etree.SubElement(mul_3, "mtVAR").text = 'z'
+
+        # (Target Distance)
+        etree.SubElement(fitness, "mtVAR").text = 'closeness'
+
 
         history = etree.SubElement(simulator, "RecordHistory")
         etree.SubElement(history, "RecordStepSize").text = str(self.RecordStepSize) #Capture image every 100 time steps
@@ -122,15 +126,54 @@ class VXA:
 
         # Structure
         structure = etree.SubElement(vxc, "Structure")
-        structure.set("Compression", "ASCII_READABLE")
-        # set some default data
-        etree.SubElement(structure, "X_Voxels").text = "1"
-        etree.SubElement(structure, "Y_Voxels").text = "1"
-        etree.SubElement(structure, "Z_Voxels").text = "2"
 
-        data = etree.SubElement(structure, "Data")
-        etree.SubElement(data, "Layer").text = etree.CDATA("0")
-        etree.SubElement(data, "Layer").text = etree.CDATA("1")
+    def overwrite_VXC(self, vxc_str: str):
+        # Attempt parse str to tree
+        vxc_new = etree.fromstring(vxc_str)
+        # Remove VXC branch on tree
+        root = self.tree.getroot()
+        vxc_old = root.find("VXC")
+        root.remove(vxc_old)
+        # Replace with custom VXC tree
+        root.append(vxc_new)
+        self.tree = etree.ElementTree(root)
+
+    def organism_mats(self):
+        # Zero is empty space
+        org_mats = [0]
+        palette = self.tree.find("*/Palette")
+        for m, material in enumerate(palette.findall("Material")):
+            if (float(material.find("Mechanical").find('isMeasured').text) == 1.0):
+                org_mats.append(m+1)#int(material.attrib["ID"]))
+
+        return org_mats
+
+    def get_structure(self):
+
+        structure = self.tree.find("*/Structure")
+        x_dim = int(float(structure.find("X_Voxels").text))
+        y_dim = int(float(structure.find("Y_Voxels").text))
+        z_dim = int(float(structure.find("Z_Voxels").text))
+
+        env_arr = np.zeros(shape=(x_dim, 
+                                  y_dim, 
+                                  z_dim))
+
+        for z, layer in enumerate(structure.find("Data").findall("Layer")):
+            for xy, value in enumerate(layer.text):
+                x = int(xy % (x_dim))
+                y = int((xy - x) / (x_dim))
+                env_arr[x, y, z] = int(value)
+
+        return env_arr
+
+    def get_spawn(self):
+        structure = self.tree.find("*/Structure")
+        x_org = int(float(structure.find("X_OSpawn").text))
+        y_org = int(float(structure.find("Y_OSpawn").text))
+        z_org = int(float(structure.find("Z_OSpawn").text))
+
+        return (x_org, y_org, z_org)
 
     def add_material(self, E=10000, RHO=1000, P=0.35, CTE=0, uStatic=1, uDynamic=0.8,
                       isSticky=0, hasCilia=0, isBreakable=0, isMeasured=1,

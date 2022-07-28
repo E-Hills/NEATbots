@@ -42,8 +42,8 @@ class Evolution:
         self.params.PopulationSize = pop_s
         self.params.MaxSpecies = 1
         self.params.AllowClones = False
-        self.params.SurvivalRate = 0.75
-        self.params.RouletteWheelSelection = True
+        self.params.SurvivalRate = 0.5
+        self.params.RouletteWheelSelection = False
 
         # Define the seed genomes on which all genomes are based
         self.morphology_seed_genome = NEAT.Genome(0, 4, 8, 1, False, 
@@ -92,7 +92,7 @@ class Evolution:
         # Iterate over all organisms in the population
         for key in organisms.keys():
             # Generate and encode morphology
-            org_morphology = organisms[key].generate_morphology(self.sim.vxa.NextMaterialID-1)
+            org_morphology = organisms[key].generate_morphology(self.sim.vxa.organism_mats())
             self.sim.encode_morphology(org_morphology, generation_path, str(label +"_"+ key), step_size)
             # Generate control system
             #org_controlsys = organisms[key].generate_controlsys()
@@ -150,6 +150,7 @@ class Evolution:
 
         # Re-simulate elites, recording history files
         if (rec_elites):
+            print("Recording Elite .history files for playback")
             scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
 
         # Calculate result metrics
