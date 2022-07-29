@@ -43,7 +43,7 @@ class Evolution:
         self.params.MaxSpecies = 1
         self.params.AllowClones = False
         self.params.SurvivalRate = 0.5
-        self.params.RouletteWheelSelection = False
+        self.params.RouletteWheelSelection = True
 
         # Define the seed genomes on which all genomes are based
         self.morphology_seed_genome = NEAT.Genome(0, 4, 8, 1, False, 
@@ -122,12 +122,15 @@ class Evolution:
         elite_orgs = dict()
         gen_results = list()
 
-        # Record execution time for benchmarking
-        time_start = time.perf_counter()
+        # Record simulation execution time for benchmarking
+        print("\n  Gen | MaxFit | AvgFit | HH:MM:SS  ")
+        print("#==================================#")
 
         # Generational evolution loop
         for generation in range(self.gen_n):
-            print(generation+1)
+
+            # Record per-generation execution time for benchmarking
+            gen_start = time.perf_counter()
 
             # Create organisms from morphology and control system populations
             joined_orgs = self.construct_organisms(generation+1)
@@ -139,10 +142,19 @@ class Evolution:
             elite_key = max(scored_orgs.keys(), key=lambda k: getattr(scored_orgs[k], 'fitness'))
             elite_orgs[elite_key] = copy.deepcopy(scored_orgs[elite_key])
 
-            # Record generation results
+            # Calculate generation results
             avg_fit = np.average([org.fitness for org in scored_orgs.values()])
             max_fit = scored_orgs[elite_key].fitness
-            gen_results.append([generation+1, avg_fit, max_fit])
+
+            # Record ececution time for benchmarking
+            gen_secs = time.perf_counter() - gen_start
+            gen_mins = (gen_secs // 60)
+            gen_hour = (gen_mins // 60)
+            gen_time = str("%02d:%02d:%02d") % (gen_hour, gen_mins % 60, gen_secs % 60)
+
+            gen_results.append([generation+1, avg_fit, max_fit, gen_time])
+
+            print( "  {0:03d} | {1:06.2f} | {2:06.2f} | {3} ".format(*gen_results[-1]))
 
             # Select organisms to make a new population for the next generation
             self.morphology_pop.Epoch()
@@ -150,19 +162,20 @@ class Evolution:
 
         # Re-simulate elites, recording history files
         if (rec_elites):
-            print("Recording Elite .history files for playback")
+            print("\nRecording history files...")
             scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
 
         # Calculate result metrics
-        evo_results = [0, 0, 0]
+        evo_results = [0, 0]
         if (len(gen_results) > 1):
             evo_results[0] = (gen_results[-1][1] - gen_results[0][1]) / len(gen_results)
             evo_results[1] = ((gen_results[-1][1] - gen_results[-2][1]) - (gen_results[1][1] - gen_results[0][1])) / len(gen_results)
-            evo_results[2] = time.perf_counter() - time_start
 
         # Format results as dataframes
-        fmt_gen_results = pd.DataFrame(gen_results, columns=["Generation", "Average Fitness", "Max Fitness"])
-        fmt_evo_results = pd.DataFrame([evo_results], columns=["Evo Speed", "Evo Acceleration", "Evo Duration"])
+        fmt_gen_results = pd.DataFrame(gen_results, columns=["Gen", "Avg Fitness", "Max Fitness", "Exe Time"]).set_index("Gen")
+        fmt_evo_results = pd.DataFrame([evo_results], columns=["Evo Speed", "Evo Accel"])
+
+        print("Done")
 
         return fmt_gen_results, fmt_evo_results
         

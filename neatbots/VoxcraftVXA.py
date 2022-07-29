@@ -54,6 +54,7 @@ class VXA:
         simulator = etree.SubElement(root, "Simulator")
         etree.SubElement(simulator, "EnableCilia").text = str(self.EnableCilia)
         etree.SubElement(simulator, "EnableExpansion").text = str(self.EnableExpansion) # 0 only contraction, 1 is contraction + expansion
+        etree.SubElement(simulator, "MaxDistInVoxelLengthsToCountAsPair").text = "2"
 
         integration = etree.SubElement(simulator, "Integration")
         etree.SubElement(integration, "DtFrac").text = str(self.DtFrac)
@@ -91,8 +92,11 @@ class VXA:
         # etree.SubElement(mul_3, "mtVAR").text = 'z'
 
         # (Target Distance)
-        etree.SubElement(fitness, "mtVAR").text = 'closeness'
+        sub_1 = etree.SubElement(fitness, 'mtSUB')
+        etree.SubElement(sub_1, "mtCONST").text = '100'
+        etree.SubElement(sub_1, "mtVAR").text = 'targetCloseness'
 
+        etree.SubElement(simulator, "EnableTargetCloseness").text = '1'
 
         history = etree.SubElement(simulator, "RecordHistory")
         etree.SubElement(history, "RecordStepSize").text = str(self.RecordStepSize) #Capture image every 100 time steps
