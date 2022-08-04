@@ -77,24 +77,24 @@ class VXA:
         fitness = etree.SubElement(simulator, "FitnessFunction")
 
         # (Euclidian Distance)
-        # abs_1 = etree.SubElement(fitness, "mtABS")
-        # add_1 = etree.SubElement(abs_1, "mtADD")
+        abs_1 = etree.SubElement(fitness, "mtABS")
+        add_1 = etree.SubElement(abs_1, "mtADD")
 
-        # mul_l = etree.SubElement(add_1, 'mtMUL')
-        # etree.SubElement(mul_l, "mtVAR").text = 'x'
-        # etree.SubElement(mul_l, "mtVAR").text = 'x'
-        # mul_2 = etree.SubElement(add_1, 'mtMUL')
-        # etree.SubElement(mul_2, "mtVAR").text = 'y'
-        # etree.SubElement(mul_2, "mtVAR").text = 'y'
+        mul_l = etree.SubElement(add_1, 'mtMUL')
+        etree.SubElement(mul_l, "mtVAR").text = 'x'
+        etree.SubElement(mul_l, "mtVAR").text = 'x'
+        mul_2 = etree.SubElement(add_1, 'mtMUL')
+        etree.SubElement(mul_2, "mtVAR").text = 'y'
+        etree.SubElement(mul_2, "mtVAR").text = 'y'
 
-        # mul_3 = etree.SubElement(add_1, 'mtMUL')
-        # etree.SubElement(mul_3, "mtVAR").text = 'z'
-        # etree.SubElement(mul_3, "mtVAR").text = 'z'
+        mul_3 = etree.SubElement(add_1, 'mtMUL')
+        etree.SubElement(mul_3, "mtVAR").text = 'z'
+        etree.SubElement(mul_3, "mtVAR").text = 'z'
 
         # (Target Distance)
-        sub_1 = etree.SubElement(fitness, 'mtSUB')
-        etree.SubElement(sub_1, "mtCONST").text = '100'
-        etree.SubElement(sub_1, "mtVAR").text = 'targetCloseness'
+        #sub_1 = etree.SubElement(fitness, 'mtSUB')
+        #etree.SubElement(sub_1, "mtCONST").text = '100'
+        #etree.SubElement(fitness, "mtVAR").text = 'targetCloseness'
 
         etree.SubElement(simulator, "EnableTargetCloseness").text = '1'
 

@@ -44,14 +44,12 @@ class Organism:
         morphology_net = NEAT.NeuralNetwork()
         self.morphology_gen.BuildPhenotype(morphology_net)
 
-        morphology = np.zeros(shape=(self.W, 
-                                     self.H, 
-                                     self.D))
+        morphology = np.zeros(shape=(self.W, self.H, self.D))
 
         # Generate soft body by querying all positions
-        for z in range(self.W):
+        for x in range(self.W):
             for y in range(self.H):
-                for x in range(self.D):
+                for z in range(self.D):
                     # Pass X, Y, Z and Bias values to neural net
                     morphology_net.Input(np.array([x, y, z, 1.0]))
                     morphology_net.Activate()

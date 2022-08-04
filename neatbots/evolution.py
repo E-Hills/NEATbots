@@ -42,7 +42,7 @@ class Evolution:
         self.params.PopulationSize = pop_s
         self.params.MaxSpecies = 1
         self.params.AllowClones = False
-        self.params.SurvivalRate = 0.5
+        self.params.SurvivalRate = 1.0
         self.params.RouletteWheelSelection = True
 
         # Define the seed genomes on which all genomes are based
@@ -123,7 +123,7 @@ class Evolution:
         gen_results = list()
 
         # Record simulation execution time for benchmarking
-        print("\n  Gen | MaxFit | AvgFit | HH:MM:SS  ")
+        print("\n  Gen | AvgFit | MaxFit | HH:MM:SS  ")
         print("#==================================#")
 
         # Generational evolution loop
@@ -144,7 +144,7 @@ class Evolution:
 
             # Calculate generation results
             avg_fit = np.average([org.fitness for org in scored_orgs.values()])
-            max_fit = scored_orgs[elite_key].fitness
+            max_fit = np.max([org.fitness for org in scored_orgs.values()])
 
             # Record ececution time for benchmarking
             gen_secs = time.perf_counter() - gen_start

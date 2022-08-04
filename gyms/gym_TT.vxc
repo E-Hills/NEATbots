@@ -144,7 +144,7 @@
     <Y_Voxels>10.0</Y_Voxels>
     <Z_Voxels>10.0</Z_Voxels>
 
-    <X_OSpawn>5.0</X_OSpawn>
+    <X_OSpawn>0.0</X_OSpawn>
     <Y_OSpawn>5.0</Y_OSpawn>
     <Z_OSpawn>0.0</Z_OSpawn>
     

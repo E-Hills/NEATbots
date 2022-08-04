@@ -135,7 +135,7 @@ class Simulation():
                                       stderr=subprocess.PIPE)
 
         # Parse history
-        hist_split = voxcraft_out.stdout.decode("utf-8").split("HISTORY_SPLIT")
+        hist_split = voxcraft_out.stdout.decode("utf-8", errors='ignore').split("HISTORY_SPLIT")
         hist_rec = hist_split[1:]
         hist_dict = {re.search(r"runs: (.+?)\.vxd", hist).group(1):hist for hist in hist_rec}
         # Seperate execution log
