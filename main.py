@@ -5,7 +5,7 @@ from neatbots.VoxcraftVXA import VXA
 def main():
 
     # VXA (Simulation settings class)
-    vxa = VXA(HeapSize=0.6, SimTime=0.1, EnableExpansion=1, TempEnabled=1, 
+    vxa = VXA(HeapSize=0.6, SimTime=2.0, EnableCollision=1, EnableExpansion=1, TempEnabled=1, 
              VaryTempEnabled=1, TempPeriod=0.1, TempBase=25, TempAmplitude=20)
 
     #vxa.add_material(RGBA=(0,255,0), E=1e9, RHO=1e3) # passive
@@ -19,10 +19,7 @@ def main():
     evo = Evolution(sim, 1, 1, 
                     1, 1, 1)
 
-    gen_results, evo_results = evo.evolve_organisms(rec_elites=True)
-
-    print(gen_results)
-    print(evo_results)
+    gen_results, evo_results = evo.evolve_organisms(elites=True, verbose=True)
 
 if __name__ == "__main__":
     main()

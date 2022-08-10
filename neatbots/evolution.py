@@ -55,7 +55,7 @@ class Evolution:
         self.morphology_pop = NEAT.Population(self.morphology_seed_genome, self.params, True, 1.0, 0) # 0 is the RNG seed
         self.controlsys_pop = NEAT.Population(self.controlsys_seed_genome, self.params, True, 1.0, 0) # 0 is the RNG seed
 
-    def construct_organisms(self, pop_id):
+    def construct_organisms(self, pop_id: int):
         """Combines the genomes from morphology and control system populations, creating a single population of organisms.
 
         Args:
@@ -108,11 +108,12 @@ class Evolution:
         return organisms
 
 
-    def evolve_organisms(self, rec_elites: bool = False):
+    def evolve_organisms(self, elites: bool = False, verbose: bool = False):
         """Main generation-iteration loop for evolving organisms.
 
         Args:
-            rec_elites (bool): Flag for recording elites
+            elites (bool): Flag for recording elites
+            verbose (bool): Flag for per-generation output
 
         Returns:
             (pd.Dataframe): Dataframe of metrics calculated per-generation 
@@ -123,8 +124,8 @@ class Evolution:
         gen_results = list()
 
         # Record simulation execution time for benchmarking
-        print("\n  Gen | AvgFit | MaxFit | HH:MM:SS  ")
-        print("#==================================#")
+        if(verbose): print("\n  Gen | AvgFit | MaxFit | HH:MM:SS  ")
+        if(verbose): print("#==================================#")
 
         # Generational evolution loop
         for generation in range(self.gen_n):
@@ -154,15 +155,15 @@ class Evolution:
 
             gen_results.append([generation+1, avg_fit, max_fit, gen_time])
 
-            print( "  {0:03d} | {1:06.2f} | {2:06.2f} | {3} ".format(*gen_results[-1]))
+            if(verbose): print( "  {0:03d} | {1:06.2f} | {2:06.2f} | {3} ".format(*gen_results[-1]))
 
             # Select organisms to make a new population for the next generation
             self.morphology_pop.Epoch()
             #self.controlsys_pop.Epoch()
 
         # Re-simulate elites, recording history files
-        if (rec_elites):
-            print("\nRecording history files...")
+        if (elites):
+            if(verbose): print("\nRecording history files...")
             scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
 
         # Calculate result metrics
