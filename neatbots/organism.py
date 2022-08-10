@@ -34,7 +34,7 @@ class Organism:
         for values to fill the organism space.
 
         Args:
-            materials (List[int]): Array of all possible material types
+            materials (List[int]): Array of organism-usable material types
 
         Returns:
             (List[int]): Array representing the material of each voxel in the organism
@@ -44,9 +44,7 @@ class Organism:
         morphology_net = NEAT.NeuralNetwork()
         self.morphology_gen.BuildPhenotype(morphology_net)
 
-        morphology = np.zeros(shape=(self.W, 
-                                     self.H, 
-                                     self.D))
+        morphology = np.zeros(shape=(self.W, self.H, self.D))
 
         # Generate soft body by querying all positions
         for x in range(self.W):
@@ -55,11 +53,12 @@ class Organism:
                     # Pass X, Y, Z and Bias values to neural net
                     morphology_net.Input(np.array([x, y, z, 1.0]))
                     morphology_net.Activate()
-                    b = morphology_net.Output()[0]
-                    c = round(morphology_net.Output()[0] * (len(materials) - 1))
-                    if (b >= 0.75):
-                        i = 0
-                    morphology[x, y, z] = c
+                    normal_out = morphology_net.Output()[0]
+                    #a = normal_out
+                    #b = normal_out * (len(materials))
+                    #c = int(normal_out * (len(materials)))
+                    mapped_out = materials[int(normal_out * (len(materials)))]
+                    morphology[x, y, z] = mapped_out
 
         return morphology
 

@@ -1,3 +1,4 @@
+import copy
 import os
 import time
 import numpy as np
@@ -41,7 +42,7 @@ class Evolution:
         self.params.PopulationSize = pop_s
         self.params.MaxSpecies = 1
         self.params.AllowClones = False
-        self.params.SurvivalRate = 0.75
+        self.params.SurvivalRate = 1.0
         self.params.RouletteWheelSelection = True
 
         # Define the seed genomes on which all genomes are based
@@ -54,7 +55,7 @@ class Evolution:
         self.morphology_pop = NEAT.Population(self.morphology_seed_genome, self.params, True, 1.0, 0) # 0 is the RNG seed
         self.controlsys_pop = NEAT.Population(self.controlsys_seed_genome, self.params, True, 1.0, 0) # 0 is the RNG seed
 
-    def construct_organisms(self, pop_id):
+    def construct_organisms(self, pop_id: int):
         """Combines the genomes from morphology and control system populations, creating a single population of organisms.
 
         Args:
@@ -91,38 +92,28 @@ class Evolution:
         # Iterate over all organisms in the population
         for key in organisms.keys():
             # Generate and encode morphology
-            org_morphology = organisms[key].generate_morphology(self.sim.materials)
-            self.sim.encode_morphology(org_morphology, generation_path, label, key, step_size)
+            org_morphology = organisms[key].generate_morphology(self.sim.vxa.organism_mats())
+            self.sim.encode_morphology(org_morphology, generation_path, str(label +"_"+ key), step_size)
             # Generate control system
             #org_controlsys = organisms[key].generate_controlsys()
 
-            # Special case for recording history files
-            if (step_size > 0):
-                # Intermediate folder for storing organism encodings
-                temporary_path = self.sim.store_generation("history_temp")
-                # Encode morphology in tempory folder
-                self.sim.encode_morphology(org_morphology, temporary_path, label, key, step_size)
-                # Individually simulate organism to return its history file
-                fitness_scores, history_recording = self.sim.simulate_generation(temporary_path)
-                # Write the history file
-                with open(os.path.join(generation_path, label + "_" + str(key) + ".history"), "w") as f:
-                    f.write(history_recording)
-
         # Batch simulate the population and return fitness scores for all organisms
-        fitness_scores, history_recording = self.sim.simulate_generation(generation_path)
+        fitness_scores = self.sim.simulate_generation(generation_path)
 
-        # Set fitness scores for all organisms
+        # Iterate over all results for the population
         for key in organisms.keys():
+            # Set fitness scores for all organisms
             organisms[key].set_fitnesses(fitness_scores[key])
 
         return organisms
 
 
-    def evolve_organisms(self, rec_elites: bool = False):
+    def evolve_organisms(self, elites: bool = False, verbose: bool = False):
         """Main generation-iteration loop for evolving organisms.
 
         Args:
-            rec_elites (bool): Flag for recording elites
+            elites (bool): Flag for recording elites
+            verbose (bool): Flag for per-generation output
 
         Returns:
             (pd.Dataframe): Dataframe of metrics calculated per-generation 
@@ -132,12 +123,15 @@ class Evolution:
         elite_orgs = dict()
         gen_results = list()
 
-        # Record execution time for benchmarking
-        time_start = time.perf_counter()
+        # Record simulation execution time for benchmarking
+        if(verbose): print("\n  Gen | AvgFit | MaxFit | HH:MM:SS  ")
+        if(verbose): print("#==================================#")
 
         # Generational evolution loop
         for generation in range(self.gen_n):
-            print(generation+1)
+
+            # Record per-generation execution time for benchmarking
+            gen_start = time.perf_counter()
 
             # Create organisms from morphology and control system populations
             joined_orgs = self.construct_organisms(generation+1)
@@ -147,31 +141,42 @@ class Evolution:
 
             # Store highest performing organism for this generation
             elite_key = max(scored_orgs.keys(), key=lambda k: getattr(scored_orgs[k], 'fitness'))
-            elite_orgs[elite_key] = scored_orgs[elite_key]
+            elite_orgs[elite_key] = copy.deepcopy(scored_orgs[elite_key])
 
-            # Record generation results
+            # Calculate generation results
             avg_fit = np.average([org.fitness for org in scored_orgs.values()])
-            max_fit = scored_orgs[elite_key].fitness
-            gen_results.append([generation+1, avg_fit, max_fit])
+            max_fit = np.max([org.fitness for org in scored_orgs.values()])
+
+            # Record ececution time for benchmarking
+            gen_secs = time.perf_counter() - gen_start
+            gen_mins = (gen_secs // 60)
+            gen_hour = (gen_mins // 60)
+            gen_time = str("%02d:%02d:%02d") % (gen_hour, gen_mins % 60, gen_secs % 60)
+
+            gen_results.append([generation+1, avg_fit, max_fit, gen_time])
+
+            if(verbose): print( "  {0:03d} | {1:06.2f} | {2:06.2f} | {3} ".format(*gen_results[-1]))
 
             # Select organisms to make a new population for the next generation
             self.morphology_pop.Epoch()
             #self.controlsys_pop.Epoch()
 
         # Re-simulate elites, recording history files
-        if (rec_elites):
+        if (elites):
+            if(verbose): print("\nRecording history files...")
             scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
 
         # Calculate result metrics
-        evo_results = [0, 0, 0]
+        evo_results = [0, 0]
         if (len(gen_results) > 1):
             evo_results[0] = (gen_results[-1][1] - gen_results[0][1]) / len(gen_results)
             evo_results[1] = ((gen_results[-1][1] - gen_results[-2][1]) - (gen_results[1][1] - gen_results[0][1])) / len(gen_results)
-            evo_results[2] = time.perf_counter() - time_start
 
         # Format results as dataframes
-        fmt_gen_results = pd.DataFrame(gen_results, columns=["Generation", "Average Fitness", "Max Fitness"])
-        fmt_evo_results = pd.DataFrame([evo_results], columns=["Evo Speed", "Evo Acceleration", "Evo Duration"])
+        fmt_gen_results = pd.DataFrame(gen_results, columns=["Gen", "Avg Fitness", "Max Fitness", "Exe Time"]).set_index("Gen")
+        fmt_evo_results = pd.DataFrame([evo_results], columns=["Evo Speed", "Evo Accel"])
+
+        print("Done")
 
         return fmt_gen_results, fmt_evo_results
         

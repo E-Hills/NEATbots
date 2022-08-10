@@ -1,4 +1,7 @@
-import os, shutil, subprocess
+import os, shutil, subprocess, re
+from pyexpat.errors import XML_ERROR_MISPLACED_XML_PI
+import numpy as np
+from lxml import etree
 from typing import List
 
 from lxml import etree
@@ -8,15 +11,15 @@ from neatbots.VoxcraftVXD import VXD
 class Simulation():
     """Contains all methods and properties relevant to simulating voxel-based organisms."""
 
-    def __init__(self, exec_path: os.path, node_path: os.path, stor_path: os.path, heap_size: float, sim_time: float):
+    def __init__(self, exec_path: os.path, node_path: os.path, stor_path: os.path, vxa: VXA, sett_path: os.path = None):
         """Constructs a Simulation object.
 
         Args:
             exec_path (os.path): Relative path for the 'voxcraft-sim' executable
             node_path (os.path): Relative path for the 'vx3_node_worker' executable
             stor_path (os.path): Relative path for the result files to be stored within
-            heap_size (float): Percentage of GPU heap available for simulation use
-            sim_time (float): Duration of simulation process
+            vxa (VXA): Instance of VXA class containing simulation execution settings
+            sett_path (os.path): Relative path of .vxc file containing simulation environment settings
 
         Returns:
             (Simulation): Simulation object with the specified arguments 
@@ -26,39 +29,61 @@ class Simulation():
         self.exec_path = exec_path
         self.node_path = node_path
         self.stor_path = stor_path
+        self.sett_path = sett_path
 
         # Clear the storage directory
         self.empty_directory(self.stor_path)
 
-        # Configure simulation settings
-        self.vxa = VXA(HeapSize=heap_size, SimTime=sim_time, EnableExpansion=1, TempEnabled=1, VaryTempEnabled=1, TempPeriod=0.1, TempBase=25, TempAmplitude=20)
+        # Configure simulation settings from class or from file
+        self.vxa = vxa
 
-        # Define material types
-        self.materials = [
-                            0, # empty
-                            self.vxa.add_material(RGBA=(0,255,0), E=1e9, RHO=1e3), # passive
-                            self.vxa.add_material(RGBA=(255,0,0), E=1e7, RHO=1e6, CTE=0.01) # active
-                         ]
+        # Apply VXC settings
+        if (self.sett_path != None):
+            with open(self.sett_path) as f:
+                self.vxa.overwrite_VXC(f.read())
 
-    def encode_morphology(self, morphology: List[int], generation_path: os.path, label: str, id: int, step_size: int = 0):
+
+    def encode_morphology(self, morphology: List[int], generation_path: os.path, label: str, step_size: int = 0):
         """Encodes a 3D array of integers as an XML tree describing a soft-body robot and writes it as a .vxd file.
 
         Args:
             morphology (List[int]): 3D array of integers
             generation_path (os.path): Absolute path for storing encodings
-            label (str): General filename for encodings
-            id (int): Unique filename for encodings
+            label (str): Filename for encoding
             step_size (int, optional): Number of timesteps to record. Defaults to 0
         """
         
         # Settings for simulated individual
         vxd = VXD()
-        vxd.set_tags(RecordStepSize=step_size)
-        vxd.set_data(morphology)
-        vxd.write(os.path.join(generation_path, label + "_" + str(id) + ".vxd"))
+        vxd.set_tags(RecordStepSize=step_size, RecordFixedVoxels=1)
+
+        if (self.sett_path != None):
+            # Pull environment from VXA
+            environment = self.vxa.get_structure()
+            # Morphology shape
+            mW, mH, mD = morphology.shape
+            # Environment Shape
+            eW, eH, eD = environment.shape
+            # Origin for morphology insertion
+            oX, oY, oZ = self.vxa.get_spawn()
+            # Check area is within environment bounds
+            if (oX < 0) or (oY < 0) or (oZ < 0) or (oX+mW > eW) or (oY+mH > eH) or (oZ+mD > eD):
+                raise Exception("Spawn location exceeds environment bounds, please check your gym configuration")
+            # Check area is empty
+            if (np.any(environment[oX:oX+mW, oY:oY+mH, oZ:oZ+mD])):
+                raise Exception("Spawn location is not empty, please check your gym configuration")
+
+            # Insert morphology into the environment
+            environment[oX:oX+mW, oY:oY+mH, oZ:oZ+mD] = morphology
+
+            vxd.set_data(environment)
+        else:
+            vxd.set_data(morphology)
+
+        vxd.write(os.path.join(generation_path, label + ".vxd"))
 
     def empty_directory(self, target_path: os.path):
-        """Empties a directory completely.
+        """Empties a directory completely (OS agnostic).
 
         Args:
             target_path (os.path): Absolute path to the directory to empty
@@ -98,7 +123,6 @@ class Simulation():
 
         Returns:
            (Dict[str, int]): Dictionary of id-fitness pairs describing organism performance
-           (str): String containing an XML-like structure for VoxCraft-Viz to visualise
         """
 
         # Run voxcraft-sim as subprocess 
@@ -109,17 +133,26 @@ class Simulation():
                                       '--force'], 
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
-        
-        
-        # Return fitness scores
+
+        # Parse history
+        hist_split = voxcraft_out.stdout.decode("utf-8", errors='ignore').split("HISTORY_SPLIT")
+        hist_rec = hist_split[1:]
+        hist_dict = {re.search(r"runs: (.+?)\.vxd", hist).group(1):hist for hist in hist_rec}
+        # Seperate execution log
+        hist_log = hist_split[0]
+        hist_dict["log"] = hist_log
+
+        # Write history files
+        for key in hist_dict.keys():
+            with open(os.path.join(generation_path, key + ".history"), "w") as f:
+                f.write(hist_dict[key])
+
+        # Parse fitness scores
         with open(os.path.join(generation_path, "results.xml"), 'r') as f:
             tree = etree.parse(f)
             
         # Pair organisms with their fitnesses
         fitnesses = {str(r.tag).split("_")[1]: float(r.xpath("fitness_score")[0].text) for r in tree.xpath("//detail/*")}
-
-        # Parse hsitory
-        history = voxcraft_out.stdout.decode('utf-8')
-
-        return fitnesses, history
+        
+        return fitnesses
 
