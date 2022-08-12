@@ -1,287 +1,236 @@
 import numpy as np
 from lxml import etree
-
-'''
-Does not yet include signaling parameters
-'''
+from copy import deepcopy
 
 class VXA:
     
-    def __init__(self, HeapSize=0.25, EnableCilia=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8, SlowDampingZ=0.01,
+    def __init__(self, src=None, HeapSize=0.25, EnableCilia=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8, SlowDampingZ=0.01,
                 EnableCollision=0, SimTime=0.5, TempPeriod=0.1, GravEnabled=1, GravAcc=-9.81, FloorEnabled=1, Lattice_Dim=0.01,
                 RecordStepSize=0, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, VaryTempEnabled=1, TempAmplitude=20, TempBase=25,
                 TempEnabled=1):
 
-        root = etree.XML("<VXA></VXA>")
-        root.set('Version', '1.1')
-        self.tree = etree.ElementTree(root)
+        args = deepcopy(locals())
+        defs = dict(zip(reversed(list(args.keys())[:-2]), VXA.__init__.__defaults__[1:]))
 
-        self.HeapSize = HeapSize
-        self.EnableCilia = EnableCilia
-        self.EnableExpansion = EnableExpansion
-        self.DtFrac = DtFrac
-        self.BondDampingZ = BondDampingZ
-        self.ColDampingZ = ColDampingZ
-        self.SlowDampingZ = SlowDampingZ
-        self.EnableCollision = EnableCollision
-        self.SimTime = SimTime
-        self.TempPeriod = TempPeriod
-        self.GravEnabled = GravEnabled
-        self.GravAcc = GravAcc
-        self.FloorEnabled = FloorEnabled
-        self.Lattice_Dim = Lattice_Dim
-        self.RecordStepSize = RecordStepSize
-        self.RecordVoxel = RecordVoxel
-        self.RecordLink = RecordLink
-        self.RecordFixedVoxels = RecordFixedVoxels
-        self.VaryTempEnabled = VaryTempEnabled
-        self.TempAmplitude = TempAmplitude
-        self.TempBase = TempBase
-        self.TempEnabled = TempEnabled
-        
-        self.NextMaterialID = 1 # Material ID's start at 1, 0 denotes empty space
+        self.root = None
 
-        self.set_default_tags()
-
-    def set_default_tags(self):
-        root = self.tree.getroot()
-
-        # GPU
-        gpu = etree.SubElement(root, 'GPU')
-        etree.SubElement(gpu, "HeapSize").text = str(self.HeapSize)
-        
-        # Simulator
-        simulator = etree.SubElement(root, "Simulator")
-        etree.SubElement(simulator, "EnableCilia").text = str(self.EnableCilia)
-        etree.SubElement(simulator, "EnableExpansion").text = str(self.EnableExpansion) # 0 only contraction, 1 is contraction + expansion
-        etree.SubElement(simulator, "MaxDistInVoxelLengthsToCountAsPair").text = "2"
-
-        integration = etree.SubElement(simulator, "Integration")
-        etree.SubElement(integration, "DtFrac").text = str(self.DtFrac)
-
-        damping = etree.SubElement(simulator, "Damping")
-        etree.SubElement(damping, "BondDampingZ").text = str(self.BondDampingZ)
-        etree.SubElement(damping, "ColDampingZ").text = str(self.ColDampingZ)
-        etree.SubElement(damping, "SlowDampingZ").text = str(self.SlowDampingZ)
-
-        attachDetach = etree.SubElement(simulator, "AttachDetach")
-        etree.SubElement(attachDetach, "EnableCollision").text = str(self.EnableCollision)
-
-        stopCondition = etree.SubElement(simulator, "StopCondition")
-        formula = etree.SubElement(stopCondition, "StopConditionFormula")
-        sub = etree.SubElement(formula, "mtSUB")
-        etree.SubElement(sub, "mtVAR").text = 't'
-        etree.SubElement(sub, "mtCONST").text = str(self.SimTime)
-
-        # Fitness Function (Euclidian Distance)
-        fitness = etree.SubElement(simulator, "FitnessFunction")
-
-        # (Euclidian Distance)
-        # abs_1 = etree.SubElement(fitness, "mtABS")
-        # add_1 = etree.SubElement(abs_1, "mtADD")
-
-        # mul_l = etree.SubElement(add_1, 'mtMUL')
-        # etree.SubElement(mul_l, "mtVAR").text = 'x'
-        # etree.SubElement(mul_l, "mtVAR").text = 'x'
-        # mul_2 = etree.SubElement(add_1, 'mtMUL')
-        # etree.SubElement(mul_2, "mtVAR").text = 'y'
-        # etree.SubElement(mul_2, "mtVAR").text = 'y'
-
-        # mul_3 = etree.SubElement(add_1, 'mtMUL')
-        # etree.SubElement(mul_3, "mtVAR").text = 'z'
-        # etree.SubElement(mul_3, "mtVAR").text = 'z'
-
-        # (Target Distance)
-        #sub_1 = etree.SubElement(fitness, 'mtSUB')
-        #etree.SubElement(sub_1, "mtCONST").text = '100'
-        etree.SubElement(fitness, "mtVAR").text = 'targetCloseness'
-
-        etree.SubElement(simulator, "EnableTargetCloseness").text = '1'
-
-        history = etree.SubElement(simulator, "RecordHistory")
-        etree.SubElement(history, "RecordStepSize").text = str(self.RecordStepSize) #Capture image every 100 time steps
-        etree.SubElement(history, "RecordVoxel").text = str(self.RecordVoxel) # Add voxels to the visualization
-        etree.SubElement(history, "RecordLink").text = str(self.RecordLink) # Add links to the visualization
-        etree.SubElement(history, "RecordFixedVoxels").text = str(self.RecordFixedVoxels) 
-        
-        # Environment
-        environment = etree.SubElement(root, "Environment")
-        thermal = etree.SubElement(environment, "Thermal")
-        etree.SubElement(thermal, "TempEnabled").text = str(self.TempEnabled)
-        etree.SubElement(thermal, "VaryTempEnabled").text = str(self.VaryTempEnabled)
-        etree.SubElement(thermal, "TempPeriod").text = str(self.TempPeriod)
-        etree.SubElement(thermal, "TempAmplitude").text = str(self.TempAmplitude)
-        etree.SubElement(thermal, "TempBase").text = str(self.TempBase)
-
-        gravity = etree.SubElement(environment, "Gravity")
-        etree.SubElement(gravity, "GravEnabled").text = str(self.GravEnabled)
-        etree.SubElement(gravity, "GravAcc").text = str(self.GravAcc)
-        etree.SubElement(gravity, "FloorEnabled").text = str(self.FloorEnabled)
-
-        # VXC tags
-        vxc = etree.SubElement(root, "VXC")
-        vxc.set("Version", "0.94")
-
-        lattice = etree.SubElement(vxc, "Lattice")
-        etree.SubElement(lattice, "Lattice_Dim").text = str(self.Lattice_Dim)
-
-        # Materials
-        palette = etree.SubElement(vxc, "Palette")
-
-        # Structure
-        structure = etree.SubElement(vxc, "Structure")
-
-    def overwrite_VXC(self, vxc_str: str):
-        # Attempt parse str to tree
-        vxc_new = etree.fromstring(vxc_str)
-        # Remove VXC branch on tree
-        root = self.tree.getroot()
-        vxc_old = root.find("VXC")
-        root.remove(vxc_old)
-        # Replace with custom VXC tree
-        root.append(vxc_new)
-        self.tree = etree.ElementTree(root)
-
-    def organism_mats(self):
-        # Zero is empty space
-        org_mats = [0]
-        palette = self.tree.find("*/Palette")
-        for m, material in enumerate(palette.findall("Material")):
-            if (float(material.find("Mechanical").find('isMeasured').text) == 1.0):
-                org_mats.append(m+1)#int(material.attrib["ID"]))
-
-        return org_mats
-
-    def get_structure(self):
-
-        structure = self.tree.find("*/Structure")
-        x_dim = int(float(structure.find("X_Voxels").text))
-        y_dim = int(float(structure.find("Y_Voxels").text))
-        z_dim = int(float(structure.find("Z_Voxels").text))
-
-        env_arr = np.zeros(shape=(x_dim, 
-                                  y_dim, 
-                                  z_dim))
-
-        for z, layer in enumerate(structure.find("Data").findall("Layer")):
-            for xy, value in enumerate(layer.text):
-                x = int(xy % (x_dim))
-                y = int((xy - x) / (x_dim))
-                env_arr[x, y, z] = int(value)
-
-        return env_arr
-
-    def get_spawn(self):
-        structure = self.tree.find("*/Structure")
-        x_org = int(float(structure.find("X_OSpawn").text))
-        y_org = int(float(structure.find("Y_OSpawn").text))
-        z_org = int(float(structure.find("Z_OSpawn").text))
-
-        return (x_org, y_org, z_org)
-
-    def add_material(self, E=10000, RHO=1000, P=0.35, CTE=0, uStatic=1, uDynamic=0.8,
-                      isSticky=0, hasCilia=0, isBreakable=0, isMeasured=1,
-                      RGBA=None, isFixed=0, TempPhase=0):
-
-        material_ID = self.NextMaterialID
-        self.NextMaterialID+=1
-
-        if RGBA is None:
-        # assign the material a random color
-            RGBA = np.around((np.random.random(), np.random.random(), np.random.random(), 1), 2)
+        # Load VXA from file
+        if src != None:
+            parser = etree.XMLParser(remove_blank_text=True)
+            self.root = etree.parse(src, parser).getroot()
+        # Create VXA from scratch
         else:
-            if len(RGBA)==3: # if no alpha, add alpha of 255
-                RGBA = (RGBA[0],RGBA[1],RGBA[2],255)
+            # = VXA = 
+            self.root = etree.XML("<VXA></VXA>")
+            self.root.set('Version', '1.1')
+
+            # == GPU ==
+            gpu = etree.SubElement(self.root, 'GPU')
+            etree.SubElement(gpu, "HeapSize").text = str(HeapSize)
             
-            # normalize between 0-1
-            RGBA = (RGBA[0]/255,RGBA[1]/255,RGBA[2]/255,RGBA[3]/255)
+            # == Simulator ==
+            simulator = etree.SubElement(self.root, "Simulator")
+            etree.SubElement(simulator, "EnableCilia").text = str(EnableCilia)
+            etree.SubElement(simulator, "EnableExpansion").text = str(EnableExpansion) # 0 only contraction, 1 is contraction + expansion
+            etree.SubElement(simulator, "MaxDistInVoxelLengthsToCountAsPair").text = "2"
+            # === Integration ===
+            integration = etree.SubElement(simulator, "Integration")
+            etree.SubElement(integration, "DtFrac").text = str(DtFrac)
+            # === Damping ===
+            damping = etree.SubElement(simulator, "Damping")
+            etree.SubElement(damping, "BondDampingZ").text = str(BondDampingZ)
+            etree.SubElement(damping, "ColDampingZ").text = str(ColDampingZ)
+            etree.SubElement(damping, "SlowDampingZ").text = str(SlowDampingZ)
+            # === AttachDetach ===
+            attachDetach = etree.SubElement(simulator, "AttachDetach")
+            etree.SubElement(attachDetach, "EnableCollision").text = str(EnableCollision)
+            # === StopCondition ===
+            stopCondition = etree.SubElement(simulator, "StopCondition")
+            formula = etree.SubElement(stopCondition, "StopConditionFormula")
+            sub = etree.SubElement(formula, "mtSUB")
+            etree.SubElement(sub, "mtVAR").text = 't'
+            etree.SubElement(sub, "mtCONST").text = str(SimTime)
+            # === Fitness Function ===
+            fitness = etree.SubElement(simulator, "FitnessFunction")
+            # ==== (Euclidian Distance) ====
+            abs_1 = etree.SubElement(fitness, "mtABS")
+            add_1 = etree.SubElement(abs_1, "mtADD")
+            mul_l = etree.SubElement(add_1, 'mtMUL')
+            etree.SubElement(mul_l, "mtVAR").text = 'x'
+            etree.SubElement(mul_l, "mtVAR").text = 'x'
+            mul_2 = etree.SubElement(add_1, 'mtMUL')
+            etree.SubElement(mul_2, "mtVAR").text = 'y'
+            etree.SubElement(mul_2, "mtVAR").text = 'y'
+            mul_3 = etree.SubElement(add_1, 'mtMUL')
+            etree.SubElement(mul_3, "mtVAR").text = 'z'
+            etree.SubElement(mul_3, "mtVAR").text = 'z'
 
-        palette = self.tree.find("*/Palette")
-        material = etree.SubElement(palette, "Material")
-        
-        etree.SubElement(material, "Name").text = str(material_ID)
+            # === RecordHistory ===
+            history = etree.SubElement(simulator, "RecordHistory")
+            etree.SubElement(history, "RecordStepSize").text = str(RecordStepSize) #Capture image every 100 time steps
+            etree.SubElement(history, "RecordVoxel").text = str(RecordVoxel) # Add voxels to the visualization
+            etree.SubElement(history, "RecordLink").text = str(RecordLink) # Add links to the visualization
+            etree.SubElement(history, "RecordFixedVoxels").text = str(RecordFixedVoxels) 
+            
+            # == Environment ==
+            environment = etree.SubElement(self.root, "Environment")
+            thermal = etree.SubElement(environment, "Thermal")
+            etree.SubElement(thermal, "TempEnabled").text = str(TempEnabled)
+            etree.SubElement(thermal, "VaryTempEnabled").text = str(VaryTempEnabled)
+            etree.SubElement(thermal, "TempPeriod").text = str(TempPeriod)
+            etree.SubElement(thermal, "TempAmplitude").text = str(TempAmplitude)
+            etree.SubElement(thermal, "TempBase").text = str(TempBase)
+            # === Gravity ===
+            gravity = etree.SubElement(environment, "Gravity")
+            etree.SubElement(gravity, "GravEnabled").text = str(GravEnabled)
+            etree.SubElement(gravity, "GravAcc").text = str(GravAcc)
+            etree.SubElement(gravity, "FloorEnabled").text = str(FloorEnabled)
 
-        display = etree.SubElement(material, "Display")
+            # == VXC ==
+            vxc = etree.SubElement(self.root, "VXC")
+            vxc.set("Version", "0.94")
+            # === Lattice ===
+            lattice = etree.SubElement(vxc, "Lattice")
+            etree.SubElement(lattice, "Lattice_Dim").text = str(Lattice_Dim)
+            # === Voxel ===
+            voxel = etree.SubElement(vxc, "Voxel")
+            etree.SubElement(lattice, "Vox_Name").text = str("BOX")
+            etree.SubElement(lattice, "X_Squeeze").text = str(1.0)
+            etree.SubElement(lattice, "Y_Squeeze").text = str(1.0)
+            etree.SubElement(lattice, "Z_Squeeze").text = str(1.0)
+            # === Palette ===
+            palette = etree.SubElement(vxc, "Palette")
+            # === Structure ===
+            structure = etree.SubElement(vxc, "Structure")
+            structure.set('Compression', 'ASCII_READABLE')
+
+        # Overwrite VXA with provided arguments (if given)
+        for k in defs.keys():
+            if (str(args[k]) != str(defs[k])):
+                elem = self.root.find(".//" + str(k))
+                if (k == "SimTime"):
+                    # Edge case
+                    elem = self.root.find(".//mtCONST")
+                elif (elem == None):
+                    raise SyntaxError("ERROR: Could not find "+ str(k) +" tag in .vxa file")
+                
+                elem.text = str(args[k])
+
+
+    def get_voxelspace(self):
+
+        structure = self.root.find("*/Structure")
+        if (len(list(structure.iter())) < 8):
+            return (np.empty(shape=(0, 0, 0)), (0, 0, 0))
+        else:
+            # Dimensions
+            x_dim = int(float(structure.find("X_Voxels").text))
+            y_dim = int(float(structure.find("Y_Voxels").text))
+            z_dim = int(float(structure.find("Z_Voxels").text))
+            env_arr = np.zeros(shape=(x_dim, y_dim, z_dim))
+            # Origin
+            x_org = int(float(structure.find("X_OSpawn").text))
+            y_org = int(float(structure.find("Y_OSpawn").text))
+            z_org = int(float(structure.find("Z_OSpawn").text))
+            org_arr = (x_org, y_org, z_org)
+
+            for z, layer in enumerate(structure.find("Data").findall("Layer")):
+                for xy, value in enumerate(layer.text):
+                    x = int(xy % (x_dim))
+                    y = int((xy - x) / (x_dim))
+                    env_arr[x, y, z] = int(value)
+
+            return env_arr, org_arr
+
+    def add_material(self, RGBA=[None, None, None, None], isTarget=0, isMeasured=1, isFixed=0, isSticky=0, hasCilia=0, 
+                     isPaceMaker=0, paceMakerPeriod=0.0, signalValueDecay=0.0, signalTimeDelay=0.0, inactivePeriod=0.0, 
+                     matModel=0, failStress=0, elasticMod=10000, density=10000, poissonsRatio=0.35, CTE=0, uStatic=1.0, uDynamic=0.8,
+                     diff_thresh=0.0): 
+
+        properties = {
+            "isTarget": 1,
+            "isMeasured": 1,
+            "Fixed": 1,
+            "sticky": 1,
+            "Cilia": 1.0,
+            "MatModel": 1,
+            "Fail_Stress": 1.0,
+            "isPaceMaker": 1,
+            "PaceMakerPeriod": 1.0,
+            "signalValueDecay": 1.0,
+            "signalTimeDecay": 1.0,
+            "inactivePeriod": 1.0,
+            "Elastic_Mod": 1e+10,
+            "Density": 1e+10,
+            "Poissons_Ratio": 0.5,
+            "CTE": 1e-4,
+            "uStatic": 5.0,
+            "uDynamic": 1.0,
+        }
+
+        # === Palette ===
+        palette = self.root.find("*/Palette")
+        # ==== Material ====
+        mat_ID = len(palette.findall("Material")) + 1
+        new_mat = etree.Element("Material")
+        new_mat.set("ID", str(mat_ID))
+        etree.SubElement(new_mat, "Name").text = str("Generated")
+
+        # ===== Display =====
+        display = etree.SubElement(new_mat, "Display")
+        RGBA = [np.around(np.random.random(), 2) if v==None else v/255 for v in RGBA]
         etree.SubElement(display, "Red").text = str(RGBA[0])
         etree.SubElement(display, "Green").text = str(RGBA[1])
         etree.SubElement(display, "Blue").text = str(RGBA[2])
-        etree.SubElement(display, "Alpha").text = str(RGBA[3])
+        etree.SubElement(display, "Alpha").text = str(1)
 
-        mechanical = etree.SubElement(material, "Mechanical")
-        etree.SubElement(mechanical, "isMeasured").text = str(isMeasured) # if material should be included in fitness function
-        etree.SubElement(mechanical, "Fixed").text = str(isFixed)
-        etree.SubElement(mechanical, "sticky").text = str(isSticky)
-        etree.SubElement(mechanical, "Cilia").text = str(hasCilia)
-        etree.SubElement(mechanical, "MatModel").text = str(isBreakable) # 0 = no failing
-        etree.SubElement(mechanical, "Elastic_Mod").text = str(E)
-        etree.SubElement(mechanical, "Fail_Stress").text = "0" # no fail if matModel is 0
-        etree.SubElement(mechanical, "Density").text = str(RHO)
-        etree.SubElement(mechanical, "Poissons_Ratio").text = str(P)
-        etree.SubElement(mechanical, "CTE").text = str(CTE)
-        etree.SubElement(mechanical, "MaterialTempPhase").text = str(TempPhase)
-        etree.SubElement(mechanical, "uStatic").text = str(uStatic)
-        etree.SubElement(mechanical, "uDynamic").text = str(uDynamic)
+        # ===== Mechanical =====
+        new_mech = etree.SubElement(new_mat, "Mechanical")
+        etree.SubElement(new_mech, "isTarget").text = str(round(isTarget))              # 0 OR 1
+        etree.SubElement(new_mech, "isMeasured").text = str(round(isMeasured))          # 0 OR 1
+        etree.SubElement(new_mech, "Fixed").text = str(round(isFixed))                  # 0 OR 1
+        etree.SubElement(new_mech, "sticky").text = str(round(isSticky))                # 0 OR 1
+        etree.SubElement(new_mech, "Cilia").text = str(hasCilia)                        # 0 TO 1
+        etree.SubElement(new_mech, "MatModel").text = str(round(matModel))              # 0 OR 1
+        etree.SubElement(new_mech, "Fail_Stress").text = str(failStress)                # 0 TO 1
 
-        return material_ID
+        etree.SubElement(new_mech, "isPaceMaker").text = str(round(isPaceMaker))        # 0 OR 1
+        etree.SubElement(new_mech, "PaceMakerPeriod").text = str(paceMakerPeriod)       # 0 TO 1
+        etree.SubElement(new_mech, "signalValueDecay").text = str(signalValueDecay)     # 0 TO 1
+        etree.SubElement(new_mech, "signalTimeDecay").text = str(signalTimeDelay)       # 0 TO 1
+        etree.SubElement(new_mech, "inactivePeriod").text = str(inactivePeriod)         # 0 TO 1
+
+        etree.SubElement(new_mech, "Elastic_Mod").text = str(elasticMod * 1.0e+10)      # 0 TO 1e+10
+        etree.SubElement(new_mech, "Density").text = str(density * 1.0e+10)             # 0 TO 1e+10
+        etree.SubElement(new_mech, "Poissons_Ratio").text = str(poissonsRatio * 0.5)    # 0 TO 0.5
+        etree.SubElement(new_mech, "CTE").text = str(CTE * 1.0e-2)                      # 0 TO 1e-1
+        etree.SubElement(new_mech, "uStatic").text = str(uStatic * 5.0)                 # 0 TO 5.0
+        etree.SubElement(new_mech, "uDynamic").text = str(uDynamic)                     # 0 TO 1
+
+        # Check that new_mat is distinct enough from others
+        for m, pre_mat in enumerate(palette.findall("Material")):
+            pre_mech = pre_mat.find("Mechanical")
+            all_diff = 0
+            # Skip environment materials
+            if int(float(pre_mech.find("Fixed").text)) == 0:
+                # Calculate per-property similarity
+                for p, prop in enumerate(pre_mech):
+                    abs_diff = abs(float(pre_mech.find(prop.tag).text) - float(new_mech.find(prop.tag).text))
+                    all_diff += abs_diff
+                # Return pre-existing similar material
+                per_diff = (all_diff / sum(properties.values())) * 100
+                if per_diff <= diff_thresh:
+                    return pre_mat.attrib["ID"]
+
+        # New mat is distinct enough, so append to palette
+        palette.append(new_mat)
+        return mat_ID
 
     def write(self, filename='base.vxa'):
 
         # If no material has been added, add default material
-        if self.NextMaterialID==0:
+        if len(self.root.find("*/Palette").findall("Material")) == 0:
             self.add_material()
         
         with open(filename, 'w+') as f:
-            f.write(etree.tostring(self.tree, encoding="unicode", pretty_print=True))
-
-    def set_fitness_function(self, str_fitness, tree_fitness):
-
-        mt_ops = {"+": "mtADD",
-                  "-": "mtSUB",
-                  "*": "mtMUL",
-                  "/": "mtDIV",
-                  "**": "mtPOW",
-                  "¬": "mtNOT",
-                  ">": "mtGREATERTHAN",
-                  "<": "mtLESSTHAN",
-                  "&&": "mtAND",
-                  "||": "mtOR"}
-
-        mt_funcs = {"con": "mtCONST",
-                    "cdf": "mtNORMALCDF",
-                    "sqr": "mtSQRT",
-                    "log": "mtLOG",
-                    "rnd": "mtINT",
-                    "abs": "mtABS",
-                    "sin": "mtSIN",
-                    "cos": "mtCOS",
-                    "tan": "mtTAN",
-                    "atan": "mtATAN"}
-
-        mt_vars = {"=": "mtEND",
-                   "e": "mtE",
-                   "pi": "mtPI",
-                   "x": "x",
-                   "y": "y",
-                   "z": "z",
-                   "h": "hit",
-                   "t": "t",
-                   "a": "angle",
-                   "c": "closeness",
-                   "v": "num_voxel",
-                   "p": "numClosePairs"}
-
-
-        tokens = str_fitness.split(" ")
-
-        for t in tokens:
-            if t in mt_ops:
-                pass
-            elif t in mt_funcs:
-                pass
-            elif t in mt_vars:
-                pass
-            elif (t is int):
-                pass 
-
-
-        pass
+            f.write(etree.tostring(self.root, encoding="unicode", pretty_print=True))

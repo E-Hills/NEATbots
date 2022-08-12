@@ -1,3 +1,4 @@
+from neatbots.VoxcraftVXA import VXA
 from typing import List
 import numpy as np
 import MultiNEAT as NEAT
@@ -29,7 +30,7 @@ class Organism:
         self.D = D
 
 
-    def generate_morphology(self, materials: List[int]):
+    def generate_morphology(self, vxa: VXA):
         """Builds the phenotype neural network of a morphology genome, and then queries the network
         for values to fill the organism space.
 
@@ -53,12 +54,16 @@ class Organism:
                     # Pass X, Y, Z and Bias values to neural net
                     morphology_net.Input(np.array([x, y, z, 1.0]))
                     morphology_net.Activate()
-                    normal_out = morphology_net.Output()[0]
+                    net_out = morphology_net.Output()
                     #a = normal_out
                     #b = normal_out * (len(materials))
                     #c = int(normal_out * (len(materials)))
-                    mapped_out = materials[int(normal_out * (len(materials)))]
-                    morphology[x, y, z] = mapped_out
+                    #mapped_out = materials[int(normal_out * (len(materials)))]
+                    #morphology[x, y, z] = mapped_out
+                    mat_id = vxa.add_material(isPaceMaker=net_out[0], paceMakerPeriod=net_out[1], signalValueDecay=net_out[2], signalTimeDelay=net_out[3],
+                                              inactivePeriod=net_out[4], elasticMod=net_out[5], density=net_out[6], poissonsRatio=net_out[7], CTE=net_out[8],
+                                              uStatic=net_out[9], uDynamic=net_out[10], diff_thresh=20)
+                    morphology[x, y, z] = mat_id
 
         return morphology
 

@@ -11,7 +11,7 @@ from neatbots.VoxcraftVXD import VXD
 class Simulation():
     """Contains all methods and properties relevant to simulating voxel-based organisms."""
 
-    def __init__(self, exec_path: os.path, node_path: os.path, stor_path: os.path, vxa: VXA, sett_path: os.path = None):
+    def __init__(self, exec_path: os.path, node_path: os.path, stor_path: os.path, vxa: VXA):
         """Constructs a Simulation object.
 
         Args:
@@ -19,7 +19,6 @@ class Simulation():
             node_path (os.path): Relative path for the 'vx3_node_worker' executable
             stor_path (os.path): Relative path for the result files to be stored within
             vxa (VXA): Instance of VXA class containing simulation execution settings
-            sett_path (os.path): Relative path of .vxc file containing simulation environment settings
 
         Returns:
             (Simulation): Simulation object with the specified arguments 
@@ -29,18 +28,12 @@ class Simulation():
         self.exec_path = exec_path
         self.node_path = node_path
         self.stor_path = stor_path
-        self.sett_path = sett_path
 
         # Clear the storage directory
         self.empty_directory(self.stor_path)
 
-        # Configure simulation settings from class or from file
+        # Configure simulation settings
         self.vxa = vxa
-
-        # Apply VXC settings
-        if (self.sett_path != None):
-            with open(self.sett_path) as f:
-                self.vxa.overwrite_VXC(f.read())
 
 
     def encode_morphology(self, morphology: List[int], generation_path: os.path, label: str, step_size: int = 0):
@@ -57,15 +50,17 @@ class Simulation():
         vxd = VXD()
         vxd.set_tags(RecordStepSize=step_size, RecordFixedVoxels=1)
 
-        if (self.sett_path != None):
-            # Pull environment from VXA
-            environment = self.vxa.get_structure()
+        # Pull environment from VXA
+        environment, spawnpoint = self.vxa.get_voxelspace()
+
+        if (environment.shape != (0, 0, 0)):
+            
             # Morphology shape
             mW, mH, mD = morphology.shape
             # Environment Shape
             eW, eH, eD = environment.shape
             # Origin for morphology insertion
-            oX, oY, oZ = self.vxa.get_spawn()
+            oX, oY, oZ = spawnpoint
             # Check area is within environment bounds
             if (oX < 0) or (oY < 0) or (oZ < 0) or (oX+mW > eW) or (oY+mH > eH) or (oZ+mD > eD):
                 raise Exception("Spawn location exceeds environment bounds, please check your gym configuration")
@@ -95,24 +90,21 @@ class Simulation():
             for d in dirs:
                 shutil.rmtree(os.path.join(root, d))
 
-    def store_generation(self, generation_dir: str):
+    def create_directory(self, target_dir: str):
         """Creates a directory and stores the simulation settings within.
 
         Args:
-            generation_dir (str): Relative path of the directory to create
+            target_dir (str): Relative path of the directory to create
 
         Returns:
             (os.path): Absolute path to the newly created directory
         """
 
         # Make storage directory if not already made
-        gene_path = os.path.join(self.stor_path, generation_dir)
+        gene_path = os.path.join(self.stor_path, target_dir)
         os.makedirs(gene_path, exist_ok=True)
         # Ensure directory is empty
-        self.empty_directory(gene_path)
-        # Store simulation settings and materials
-        self.vxa.write(os.path.join(gene_path, "base.vxa"))
-
+        #self.empty_directory(gene_path)
         return gene_path
 
     def simulate_generation(self, generation_path: os.path):

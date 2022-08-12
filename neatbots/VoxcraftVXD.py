@@ -21,12 +21,12 @@ class VXD:
     def set_data(self, data):
         root = self.tree.getroot()
 
-        X_Voxels, Y_Voxels, Z_Voxels  = data.shape
-        body_flatten = np.zeros((X_Voxels*Y_Voxels, Z_Voxels),dtype=np.int8)
+        X_Voxels, Y_Voxels, Z_Voxels = data.shape
+        body_flatten = np.zeros((X_Voxels*Y_Voxels, Z_Voxels),dtype=str)
         for z in range(Z_Voxels):
             for y in range(Y_Voxels):
                 for x in range(X_Voxels):
-                    body_flatten[y*(X_Voxels)+x, z] = data[x, y, z]
+                    body_flatten[y*(X_Voxels)+x, z] = chr(int(48+data[x, y, z]))
             #body_flatten[:,i] = data[:,:,i].flatten()
         
         structure = etree.SubElement(root, "Structure")
