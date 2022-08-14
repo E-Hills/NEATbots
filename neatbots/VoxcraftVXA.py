@@ -4,7 +4,7 @@ from copy import deepcopy
 
 class VXA:
     
-    def __init__(self, src=None, HeapSize=0.25, EnableCilia=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8, SlowDampingZ=0.01,
+    def __init__(self, src=None, HeapSize=0.25, EnableCilia=0, EnableSignals=0, EnableExpansion=1, DtFrac=0.95, BondDampingZ=1, ColDampingZ=0.8, SlowDampingZ=0.01,
                 EnableCollision=0, SimTime=0.5, TempPeriod=0.1, GravEnabled=1, GravAcc=-9.81, FloorEnabled=1, Lattice_Dim=0.01,
                 RecordStepSize=0, RecordVoxel=1, RecordLink=0, RecordFixedVoxels=1, VaryTempEnabled=1, TempAmplitude=20, TempBase=25,
                 TempEnabled=1):
@@ -31,6 +31,7 @@ class VXA:
             # == Simulator ==
             simulator = etree.SubElement(self.root, "Simulator")
             etree.SubElement(simulator, "EnableCilia").text = str(EnableCilia)
+            etree.SubElement(simulator, "EnableSignals").text = str(EnableSignals)
             etree.SubElement(simulator, "EnableExpansion").text = str(EnableExpansion) # 0 only contraction, 1 is contraction + expansion
             etree.SubElement(simulator, "MaxDistInVoxelLengthsToCountAsPair").text = "2"
             # === Integration ===
@@ -190,7 +191,7 @@ class VXA:
         etree.SubElement(new_mech, "isMeasured").text = str(round(isMeasured))          # 0 OR 1
         etree.SubElement(new_mech, "Fixed").text = str(round(isFixed))                  # 0 OR 1
         etree.SubElement(new_mech, "sticky").text = str(round(isSticky))                # 0 OR 1
-        etree.SubElement(new_mech, "Cilia").text = str(hasCilia)                        # 0 TO 1
+        etree.SubElement(new_mech, "Cilia").text = str(round(hasCilia))                 # 0 OR 1
         etree.SubElement(new_mech, "MatModel").text = str(round(matModel))              # 0 OR 1
         etree.SubElement(new_mech, "Fail_Stress").text = str(failStress)                # 0 TO 1
 

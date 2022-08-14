@@ -46,7 +46,7 @@ class Evolution:
         self.params.RouletteWheelSelection = True
 
         # Define the seed genomes on which all genomes are based
-        self.morphology_seed_genome = NEAT.Genome(0, 4, 8, 11, False, 
+        self.morphology_seed_genome = NEAT.Genome(0, 4, 8, 12, False, 
                                                NEAT.ActivationFunction.UNSIGNED_SIGMOID, NEAT.ActivationFunction.RELU, 1, self.params, 3)
         self.controlsys_seed_genome = NEAT.Genome(1, 4, 8, 2, False, 
                                                NEAT.ActivationFunction.UNSIGNED_SIGMOID, NEAT.ActivationFunction.RELU, 1, self.params, 1)
@@ -128,8 +128,8 @@ class Evolution:
         gen_results = list()
 
         # Record simulation execution time for benchmarking
-        if(verbose): print("\n  Gen | AvgFit | MaxFit | HH:MM:SS  ")
-        if(verbose): print("#==================================#")
+        if(verbose): print("\n  Gen |  AvgFit  |  MaxFit  | HH:MM:SS  ")
+        if(verbose): print(  "#======================================#")
 
         # Generational evolution loop
         for generation in range(self.gen_n):
@@ -159,7 +159,7 @@ class Evolution:
 
             gen_results.append([generation+1, avg_fit, max_fit, gen_time])
 
-            if(verbose): print( "  {0:03d} | {1:06.2f} | {2:06.2f} | {3} ".format(*gen_results[-1]))
+            if(verbose): print( "  {0:03d} | {1:+07.2f}% | {2:+07.2f}% | {3} ".format(*gen_results[-1]))
 
             # Select organisms to make a new population for the next generation
             self.morphology_pop.Epoch()
@@ -167,7 +167,7 @@ class Evolution:
 
         # Re-simulate elites, recording history files
         if (elites):     
-            if(verbose): print("\n#======== Recording Elites ========#")
+            if(verbose): print("\n#========== Recording Elites ==========#")
             scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
 
         # Calculate result metrics
@@ -180,7 +180,7 @@ class Evolution:
         fmt_gen_results = pd.DataFrame(gen_results, columns=["Gen", "Avg Fitness", "Max Fitness", "Exe Time"]).set_index("Gen")
         fmt_evo_results = pd.DataFrame([evo_results], columns=["Evo Speed", "Evo Accel"])
 
-        if(verbose): print("\n#============== DONE ==============#")
+        if(verbose): print("\n#================ DONE ================#")
 
         return fmt_gen_results, fmt_evo_results
         

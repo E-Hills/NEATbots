@@ -60,9 +60,9 @@ class Organism:
                     #c = int(normal_out * (len(materials)))
                     #mapped_out = materials[int(normal_out * (len(materials)))]
                     #morphology[x, y, z] = mapped_out
-                    mat_id = vxa.add_material(isPaceMaker=net_out[0], paceMakerPeriod=net_out[1], signalValueDecay=net_out[2], signalTimeDelay=net_out[3],
-                                              inactivePeriod=net_out[4], elasticMod=net_out[5], density=net_out[6], poissonsRatio=net_out[7], CTE=net_out[8],
-                                              uStatic=net_out[9], uDynamic=net_out[10], diff_thresh=20)
+                    mat_id = vxa.add_material(hasCilia=net_out[0], isPaceMaker=net_out[1], paceMakerPeriod=net_out[2], signalValueDecay=net_out[3], signalTimeDelay=net_out[4],
+                                              inactivePeriod=net_out[5], elasticMod=net_out[6], density=net_out[7], poissonsRatio=net_out[8], CTE=net_out[9],
+                                              uStatic=net_out[10], uDynamic=net_out[11], diff_thresh=20)
                     morphology[x, y, z] = mat_id
 
         return morphology
