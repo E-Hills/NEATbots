@@ -4,6 +4,7 @@
   </GPU>
   <Simulator>
     <EnableCilia>0</EnableCilia>
+    <EnableSignals>0</EnableSignals>
     <EnableExpansion>1</EnableExpansion>
     <MaxDistInVoxelLengthsToCountAsPair>2</MaxDistInVoxelLengthsToCountAsPair>
     <Integration>
@@ -125,68 +126,6 @@
         <uDynamic>0.0</uDynamic>
       </Mechanical>
     </Material>
-
-    <!--MATERIAL_03-->
-    <Material ID="3">
-      <Name>Passive</Name>
-      <Display>
-        <Red>0.0</Red>
-        <Green>1.0</Green>
-        <Blue>0.0</Blue>
-        <Alpha>1.0</Alpha>
-      </Display>
-      <Mechanical>
-        <isTarget>0.0</isTarget>
-        <isMeasured>1.0</isMeasured>
-        <Fixed>0.0</Fixed>
-        <sticky>0.0</sticky>
-        <Cilia>0.0</Cilia>
-        <isPaceMaker>0.0</isPaceMaker>
-        <PaceMakerPeriod>0.0</PaceMakerPeriod>
-        <signalValueDecay>0.0</signalValueDecay>
-        <signalTimeDecay>0.0</signalTimeDecay>
-        <inactivePeriod>0.0</inactivePeriod>
-        <MatModel>0.0</MatModel>
-        <Elastic_Mod>1.0e+009</Elastic_Mod>
-        <Fail_Stress>0.0</Fail_Stress>
-        <Density>1.0e+005</Density>
-        <Poissons_Ratio>0.35</Poissons_Ratio>
-        <CTE>0.0</CTE>
-        <uStatic>1.0</uStatic>
-        <uDynamic>0.8</uDynamic>
-      </Mechanical>
-    </Material>
-    
-    <!--MATERIAL_04-->
-    <Material ID="4">
-      <Name>Active</Name>
-      <Display>
-        <Red>1.0</Red>
-        <Green>0.0</Green>
-        <Blue>0.0</Blue>
-        <Alpha>1.0</Alpha>
-      </Display>
-      <Mechanical>
-        <isTarget>0.0</isTarget>
-        <isMeasured>1.0</isMeasured>
-        <Fixed>0.0</Fixed>
-        <sticky>0.0</sticky>
-        <Cilia>0.0</Cilia>
-        <isPaceMaker>0.0</isPaceMaker>
-        <PaceMakerPeriod>0.0</PaceMakerPeriod>
-        <signalValueDecay>0.0</signalValueDecay>
-        <signalTimeDecay>0.0</signalTimeDecay>
-        <inactivePeriod>0.0</inactivePeriod>
-        <MatModel>0.0</MatModel>
-        <Elastic_Mod>1.0e+007</Elastic_Mod>
-        <Fail_Stress>0.0</Fail_Stress>
-        <Density>1.0e+006</Density>
-        <Poissons_Ratio>0.35</Poissons_Ratio>
-        <CTE>0.01</CTE>
-        <uStatic>1.0</uStatic>
-        <uDynamic>0.8</uDynamic>
-      </Mechanical>
-    </Material>
   </Palette>
 
   <!--STRUCTURE-->
@@ -197,7 +136,7 @@
 
     <X_OSpawn>7.0</X_OSpawn>
     <Y_OSpawn>5.0</Y_OSpawn>
-    <Z_OSpawn>0.0</Z_OSpawn>
+    <Z_OSpawn>1.0</Z_OSpawn>
     
     <Data>
       <Layer>0000000000000000000000000000000000000000200000000020000000000000000000000000000000000000000000000000</Layer>

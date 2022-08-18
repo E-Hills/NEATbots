@@ -9,19 +9,19 @@ from neatbots.VoxcraftVXA import VXA
 from neatbots.VoxcraftVXD import VXD
 
 class Simulation():
-    """Contains all methods and properties relevant to simulating voxel-based organisms."""
+    """Class representing a simulation process for voxel-based organisms."""
 
-    def __init__(self, exec_path: os.path, node_path: os.path, stor_path: os.path, vxa: VXA):
+    def __init__(self, exec_path: str, node_path: str, stor_path: str, vxa: VXA):
         """Constructs a Simulation object.
 
         Args:
-            exec_path (os.path): Relative path for the 'voxcraft-sim' executable
-            node_path (os.path): Relative path for the 'vx3_node_worker' executable
-            stor_path (os.path): Relative path for the result files to be stored within
-            vxa (VXA): Instance of VXA class containing simulation execution settings
+            exec_path (str): Relative path for the 'voxcraft-sim' executable.
+            node_path (str): Relative path for the 'vx3_node_worker' executable.
+            stor_path (str): Relative path for generation directories.
+            vxa (VXA): Instance of VXA class containing simulation execution settings.
 
         Returns:
-            (Simulation): Simulation object with the specified arguments 
+            (Simulation): Simulation object with the specified arguments.
         """
 
         # Create absolute paths for simulation execution
@@ -40,10 +40,10 @@ class Simulation():
         """Encodes a 3D array of integers as an XML tree describing a soft-body robot and writes it as a .vxd file.
 
         Args:
-            morphology (List[int]): 3D array of integers
-            generation_path (os.path): Absolute path for storing encodings
-            label (str): Filename for encoding
-            step_size (int, optional): Number of timesteps to record. Defaults to 0
+            morphology (List[int]): 3D array of integers.
+            generation_path (os.path): Absolute path for storing encodings.
+            label (str): Filename for encoding.
+            step_size (int, optional): Number of timesteps to record. Defaults to 0.
         """
         
         # Settings for simulated individual
@@ -81,7 +81,7 @@ class Simulation():
         """Empties a directory completely (OS agnostic).
 
         Args:
-            target_path (os.path): Absolute path to the directory to empty
+            target_path (os.path): Absolute path to the directory to empty.
         """
 
         for root, dirs, files in os.walk(target_path):
@@ -94,10 +94,10 @@ class Simulation():
         """Creates a directory and stores the simulation settings within.
 
         Args:
-            target_dir (str): Relative path of the directory to create
+            target_dir (str): Relative path of the directory to create.
 
         Returns:
-            (os.path): Absolute path to the newly created directory
+            (os.path): Absolute path to the newly created directory.
         """
 
         # Make storage directory if not already made
@@ -111,10 +111,10 @@ class Simulation():
         """Runs a VoxCraft-Sim simulation with the specified settings and inputs.
 
         Args:
-            generation_path (os.path): Absolute path for storing settings and results
+            generation_path (os.path): Absolute path to settings and organism files.
 
         Returns:
-           (Dict[str, int]): Dictionary of id-fitness pairs describing organism performance
+           (Dict[str, int]): Dictionary of id-fitness pairs describing organism performance.
         """
 
         # Run voxcraft-sim as subprocess 
@@ -145,6 +145,12 @@ class Simulation():
             
         # Pair organisms with their fitnesses
         fitnesses = {str(r.tag).split("_")[1]: float(r.xpath("fitness_score")[0].text) for r in tree.xpath("//detail/*")}
+
+        # Prevent specification-gaming using bugs by detecting simulation divergence
+        for k in fitnesses.keys():
+            egh = re.search(r"Diverged:.+"+ str(k) +".vxd", hist_dict["log"])
+            if (re.search(r"Diverged:.+"+ str(k) +".vxd", hist_dict["log"]) != None):
+                fitnesses[k] = 0.0
         
         return fitnesses
 

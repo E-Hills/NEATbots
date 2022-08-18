@@ -4,6 +4,7 @@
   </GPU>
   <Simulator>
     <EnableCilia>0</EnableCilia>
+    <EnableSignals>0</EnableSignals>
     <EnableExpansion>1</EnableExpansion>
     <MaxDistInVoxelLengthsToCountAsPair>2</MaxDistInVoxelLengthsToCountAsPair>
     <Integration>

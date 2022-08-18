@@ -4,20 +4,20 @@ import numpy as np
 import MultiNEAT as NEAT
 
 class Organism:
-    '''A wrapper for an organism composed of seperate genomes acting as a whole.'''
+    """Class representing an organism composed of seperate genomes acting as a whole."""
 
     def __init__(self, morphology_gen: NEAT.Genome, controlsys_gen: NEAT.Genome, W:int, H:int, D:int):
         """Constructs an Organism object.
 
         Args:
-            morphology_gen (NEAT.Genome): The morphology genome of the organism
-            controlsys_gen (NEAT.Genome): The control system genome of the organism
-            W (int): The width of each organisms possible space
-            H (int): The height of each organisms possible space
-            D (int): The depth of each organisms possible space
+            morphology_gen (NEAT.Genome): The morphology genome of the organism.
+            controlsys_gen (NEAT.Genome): The control system genome of the organism.
+            W (int): The width of organism space.
+            H (int): The height of organism space.
+            D (int): The depth of organism space.
 
         Returns:
-            (Organism): Organism object with the specified arguments
+            (Organism): Organism object with the specified arguments.
         """
 
         self.morphology_gen = morphology_gen
@@ -32,13 +32,13 @@ class Organism:
 
     def generate_morphology(self, vxa: VXA):
         """Builds the phenotype neural network of a morphology genome, and then queries the network
-        for values to fill the organism space.
+        to create materials for the organism space.
 
         Args:
-            materials (List[int]): Array of organism-usable material types
+            vxa (VXA): Instance of VXA class containing simulation execution settings.
 
         Returns:
-            (List[int]): Array representing the material of each voxel in the organism
+            (List[int]): Array representing the material of each voxel in the organism.
         """
         
         # Create neural network for soft-body generation
@@ -51,7 +51,8 @@ class Organism:
         for x in range(self.W):
             for y in range(self.H):
                 for z in range(self.D):
-                    # Pass X, Y, Z and Bias values to neural net
+                    # Pass X, Y, Z, d and Bias values to neural net
+                    d = np.linalg.norm(((self.W / 2)- x, (self.H / 2) - y, (self.D / 2) - z) )
                     morphology_net.Input(np.array([x, y, z, 1.0]))
                     morphology_net.Activate()
                     net_out = morphology_net.Output()
@@ -62,7 +63,7 @@ class Organism:
                     #morphology[x, y, z] = mapped_out
                     mat_id = vxa.add_material(hasCilia=net_out[0], isPaceMaker=net_out[1], paceMakerPeriod=net_out[2], signalValueDecay=net_out[3], signalTimeDelay=net_out[4],
                                               inactivePeriod=net_out[5], elasticMod=net_out[6], density=net_out[7], poissonsRatio=net_out[8], CTE=net_out[9],
-                                              uStatic=net_out[10], uDynamic=net_out[11], diff_thresh=20)
+                                              uStatic=net_out[10], uDynamic=net_out[11], diff_thresh=15)
                     morphology[x, y, z] = mat_id
 
         return morphology
