@@ -56,13 +56,10 @@ class Organism:
                     morphology_net.Input(np.array([x, y, z, 1.0]))
                     morphology_net.Activate()
                     net_out = morphology_net.Output()
-                    #a = normal_out
-                    #b = normal_out * (len(materials))
-                    #c = int(normal_out * (len(materials)))
-                    #mapped_out = materials[int(normal_out * (len(materials)))]
-                    #morphology[x, y, z] = mapped_out
-                    mat_id = vxa.add_material(hasCilia=net_out[0], isPaceMaker=net_out[1], paceMakerPeriod=net_out[2], signalValueDecay=net_out[3], signalTimeDelay=net_out[4],
-                                              inactivePeriod=net_out[5], elasticMod=net_out[6], density=net_out[7], poissonsRatio=net_out[8], CTE=net_out[9],
+                    mat_id = vxa.add_material(isEmpty=net_out[0],
+                                              isPaceMaker=net_out[1], PaceMakerPeriod=net_out[2], signalValueDecay=net_out[3], 
+                                              signalTimeDecay=net_out[4], inactivePeriod=net_out[5], Elastic_Mod=net_out[6], 
+                                              Density=net_out[7], Poissons_Ratio=net_out[8], CTE=net_out[9],
                                               uStatic=net_out[10], uDynamic=net_out[11], diff_thresh=15)
                     morphology[x, y, z] = mat_id
 

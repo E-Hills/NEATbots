@@ -49,6 +49,7 @@ class Simulation():
         # Settings for simulated individual
         vxd = VXD()
         vxd.set_tags(RecordStepSize=step_size, RecordFixedVoxels=1)
+        data = morphology
 
         # Pull environment from VXA
         environment, spawnpoint = self.vxa.get_voxelspace()
@@ -71,10 +72,14 @@ class Simulation():
             # Insert morphology into the environment
             environment[oX:oX+mW, oY:oY+mH, oZ:oZ+mD] = morphology
 
-            vxd.set_data(environment)
-        else:
-            vxd.set_data(morphology)
+            data = environment
 
+        # Optimise the space
+        xL, yL, zL = np.where(data!=0)
+        opt_data = data[min(xL):max(xL)+1,min(yL):max(yL)+1,min(zL):max(zL)+1]
+
+        # Set data and store in file
+        vxd.set_data(opt_data)
         vxd.write(os.path.join(generation_path, label + ".vxd"))
 
     def empty_directory(self, target_path: os.path):

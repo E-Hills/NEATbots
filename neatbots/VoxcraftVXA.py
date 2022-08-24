@@ -187,29 +187,34 @@ class VXA:
 
         return env_arr, org_arr
 
-    def add_material(self, RGBA=[None, None, None, None], isTarget=0.0, isMeasured=1.0, isFixed=0.0, isSticky=0.0, hasCilia=0.0, 
-                     isPaceMaker=0.0, paceMakerPeriod=0.0, signalValueDecay=0.0, signalTimeDelay=0.0, inactivePeriod=0.0, 
-                     matModel=0.0, elasticMod=1.0, failStress=0.0, density=1.0, poissonsRatio=0.35, CTE=0.0, 
+    def map_range(self, a: float, a_min: float, a_max: float, b_min: float, b_max: float):
+        b = ((a - a_min) / (a_max - a_min)) * (b_max - b_min) + b_min
+        return b
+
+    def add_material(self, RGBA=[None, None, None, None], isEmpty=0.0, isTarget=0.0, isMeasured=1.0, Fixed=0.0, sticky=0.0, Cilia=0.0, 
+                     isPaceMaker=0.0, PaceMakerPeriod=0.0, signalValueDecay=0.0, signalTimeDecay=0.0, inactivePeriod=0.0, 
+                     MatModel=0.0, Elastic_Mod=1.0, Fail_Stress=0.0, Density=1.0, Poissons_Ratio=0.35, CTE=0.0, 
                      uStatic=1.0, uDynamic=0.8, diff_thresh=0.0): 
         """Adds a new material to the .vxa palette.
 
         Args:
             RGBA (list, optional): List of 0.0-0.1 RGBA ranges, randomised if none given. Defaults to [None, None, None, None].
+            isEmpty (float, optional): 0 for solid and 1 for empty space, rounds to nearest if neither. Defaults to 0.0.
             isTarget (float, optional): 0 for disabled and 1 for enabled, rounds to nearest if neither. Defaults to 0.0.
             isMeasured (float, optional): 0 for disabled and 1 for enabled, rounds to nearest if neither. Defaults to 1.0.
-            isFixed (float, optional): 0 for disabled and 1 for enabled, rounds to nearest if neither. Defaults to 0.0.
-            isSticky (float, optional): 0 for disabled and 1 for enabled, rounds to nearest if neither. Defaults to 0.0.
-            hasCilia (float, optional): 0 for disabled and 1 for enabled, rounds to nearest if neither. Defaults to 0.0.
+            Fixed (float, optional): 0 for disabled and 1 for enabled, rounds to nearest if neither. Defaults to 0.0.
+            sticky (float, optional): 0 for disabled and 1 for enabled, rounds to nearest if neither. Defaults to 0.0.
+            Cilia (float, optional): 0 for disabled and 1 for enabled, rounds to nearest if neither. Defaults to 0.0.
             isPaceMaker (float, optional): 0 for disabled and 1 for enabled, rounds to nearest if neither. Defaults to 0.0.
-            paceMakerPeriod (float, optional): Period in seconds between pacemaker signals. Defaults to 0.0.
+            PaceMakerPeriod (float, optional): Period in seconds between pacemaker signals. Defaults to 0.0.
             signalValueDecay (float, optional): Decay ratio of signal propogation, 0.0 is no propogation and 1.0 is infinite propogation. Defaults to 0.0.
-            signalTimeDelay (float, optional): Time delay in seconds for signal propogation. Defaults to 0.0.
+            signalTimeDecay (float, optional): Time delay in seconds for signal propogation. Defaults to 0.0.
             inactivePeriod (float, optional): Time delay in seconds for voxel inactivity after sending a signal. Defaults to 0.0.
-            matModel (float, optional): 0 for non-failing model and 1 for failing capable model, rounds to nearest if neither. Defaults to 0.0.
-            elasticMod (float, optional): Elastic modulus for the material. Defaults to 1.0.
-            failStress (float, optional): Pressure threshold for material failure. Defaults to 0.0.
-            density (float, optional): Density of material. Defaults to 1.0.
-            poissonsRatio (float, optional): Ratio of stretch. Defaults to 0.35.
+            MatModel (float, optional): 0 for non-failing model and 1 for failing capable model, rounds to nearest if neither. Defaults to 0.0.
+            Elastic_Mod (float, optional): Elastic modulus for the material. Defaults to 1.0.
+            Fail_Stress (float, optional): Pressure threshold for material failure. Defaults to 0.0.
+            Density (float, optional): Density of material. Defaults to 1.0.
+            Poissons_Ratio (float, optional): Ratio of stretch. Defaults to 0.35.
             CTE (float, optional): Ration of thermal expansion. Defaults to 0.0.
             uStatic (float, optional): Static friction coefficient. Defaults to 1.0.
             uDynamic (float, optional): Kinetic friction coefficient. Defaults to 0.8.
@@ -218,27 +223,31 @@ class VXA:
         Returns:
             int: The numeric ID of the material.
         """
+        args = deepcopy(locals())
 
         properties = {
-            "isTarget": 1,
-            "isMeasured": 1,
-            "Fixed": 1,
-            "sticky": 1,
-            "Cilia": 1.0,
-            "isPaceMaker": 1,
-            "PaceMakerPeriod": 1.0,
-            "signalValueDecay": 1.0,
-            "signalTimeDecay": 1.0,
-            "inactivePeriod": 1.0,
-            "MatModel": 1,
-            "Fail_Stress": 1.0,
-            "Elastic_Mod": 10 ** 7,
-            "Density": 10 ** 7,
-            "Poissons_Ratio": 0.5,
-            "CTE": 10 ** -2,
-            "uStatic": 5.0,
-            "uDynamic": 1.0,
+            "isTarget": lambda x : round(x),
+            "isMeasured": lambda x : round(x),
+            "Fixed": lambda x : round(x),
+            "sticky": lambda x : round(x),
+            "Cilia": lambda x : round(x),
+            "isPaceMaker": lambda x : round(x),
+            "PaceMakerPeriod": lambda x : 0.2 + (x * 0.4),
+            "signalValueDecay": lambda x : 0.0 + (x * 0.5),
+            "signalTimeDecay": lambda x : 0.2 + (x * 0.4),
+            "inactivePeriod": lambda x : 0.2 + (x * 0.4),
+            "MatModel": lambda x : round(x),
+            "Fail_Stress": lambda x : 0.0 + (x * 1.0),
+            "Elastic_Mod": lambda x : 10 ** int(4 + (x * 4)),
+            "Density": lambda x : 10 ** int(4 + (x * 4)),
+            "Poissons_Ratio": lambda x : 0 + (x * 0.5),
+            "CTE": lambda x : 10 ** -int(2 + (x * 1.0)),
+            "uStatic": lambda x : 0.0 + (x * 5.0),
+            "uDynamic": lambda x : 0.0 + (x * 1.0),
         }
+
+        # Return empty space if isEmpty flag is set
+        if (round(isEmpty) == 1.0): return "0"
 
         # === Palette ===
         palette = self.root.find("*/Palette")
@@ -258,26 +267,8 @@ class VXA:
 
         # ===== Mechanical =====
         new_mech = etree.SubElement(new_mat, "Mechanical")
-        etree.SubElement(new_mech, "isTarget").text = str(round(isTarget))                          # 0 OR 1
-        etree.SubElement(new_mech, "isMeasured").text = str(round(isMeasured))                      # 0 OR 1
-        etree.SubElement(new_mech, "Fixed").text = str(round(isFixed))                              # 0 OR 1
-        etree.SubElement(new_mech, "sticky").text = str(round(isSticky))                            # 0 OR 1
-        etree.SubElement(new_mech, "Cilia").text = str(round(hasCilia))                             # 0 OR 1
-        etree.SubElement(new_mech, "MatModel").text = str(round(matModel))                          # 0 OR 1
-        etree.SubElement(new_mech, "Fail_Stress").text = str(failStress)                            # 0 TO 1
-
-        etree.SubElement(new_mech, "isPaceMaker").text = str(round(isPaceMaker))                    # 0 OR 1
-        etree.SubElement(new_mech, "PaceMakerPeriod").text = str((paceMakerPeriod * 0.4) + 0.2)     # 0.2 TO 0.6
-        etree.SubElement(new_mech, "signalValueDecay").text = str(signalValueDecay * 0.5)           # 0.0 TO 0.5
-        etree.SubElement(new_mech, "signalTimeDecay").text = str((signalTimeDelay * 0.4) + 0.2)     # 0.2 TO 0.6
-        etree.SubElement(new_mech, "inactivePeriod").text = str((inactivePeriod * 0.4) + 0.2)       # 0.2 TO 0.6
-
-        etree.SubElement(new_mech, "Elastic_Mod").text = str(10 ** int(4 + (elasticMod * 4)))       # 1e+4 TO 1e+8
-        etree.SubElement(new_mech, "Density").text = str(10 ** int(4 + (density * 4)))              # 1e+4 TO 1e+8
-        etree.SubElement(new_mech, "Poissons_Ratio").text = str(poissonsRatio * 0.5)                # 0 TO 0.5
-        etree.SubElement(new_mech, "CTE").text = str(10 ** -int(CTE + 2))                           # 0 TO 1e-1
-        etree.SubElement(new_mech, "uStatic").text = str(uStatic * 5.0)                             # 0 TO 5.0
-        etree.SubElement(new_mech, "uDynamic").text = str(uDynamic)                                 # 0 TO 1
+        for tag in properties.keys():
+            etree.SubElement(new_mech, tag).text = str(properties[tag](args[tag]))
 
         # Check that new_mat is distinct enough from others
         for m, pre_mat in enumerate(palette.findall("Material")):
@@ -289,9 +280,8 @@ class VXA:
                 for p, prop in enumerate(pre_mech):
                     abs_diff = abs(float(pre_mech.find(prop.tag).text) - float(new_mech.find(prop.tag).text))
                     if (abs_diff == 0): all_diff += 0
-                    else:               all_diff += (abs_diff / properties[prop.tag])
+                    else:               all_diff += (abs_diff / abs(properties[prop.tag](0) - properties[prop.tag](1)))
                 # Return pre-existing similar material
-                #per_diff = (all_diff / sum(properties.values())) * 100
                 if (all_diff == 0): per_diff = 0
                 else:               per_diff = (all_diff / len(properties.values())) * 100
                 

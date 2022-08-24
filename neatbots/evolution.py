@@ -12,7 +12,7 @@ from neatbots.organism import Organism
 class Evolution:
     """Class representing an evolution process."""
 
-    def __init__(self, sim: Simulation, gen_n: int, pop_s: int, W: int, H: int, D: int):
+    def __init__(self, sim: Simulation, params:NEAT.Parameters = None, gen_n: int = 3, pop_s: int = 8, W: int = 2, H: int = 2, D: int = 2):
         """Constructs an Evolution object.
 
         Args:
@@ -38,16 +38,14 @@ class Evolution:
         self.D = D
 
         # Retrieve defaults and set non-default parameters
-        self.params = NEAT.Parameters() 
+        if (params != None):
+            self.params = params
+        else:
+            # If no parameters passed, use MultiNEAT defaults
+            self.params = NEAT.Parameters() 
+
+        # Unique case for population size
         self.params.PopulationSize = pop_s
-        self.params.MinSpecies = 2
-        self.params.MaxSpecies = 4
-        self.params.AllowClones = False
-        self.params.SurvivalRate = 0.5
-        self.params.RouletteWheelSelection = False
-        self.params.EliteFraction = 0.1
-        self.params.DetectCompetetiveCoevolutionStagnation = True
-        self.params.KillWorstSpeciesEach = 5
 
         # Define the seed genomes on which all genomes are based
         self.morphology_seed_genome = NEAT.Genome(0, 5, 8, 12, False, 
@@ -136,16 +134,16 @@ class Evolution:
         if(verbose): print(  "#======================================#")
 
         # Generational evolution loop
-        for generation in range(self.gen_n):
+        for gen in range(self.gen_n):
 
             # Record per-generation execution time for benchmarking
             gen_start = time.perf_counter()
 
             # Create organisms from morphology and control system populations
-            joined_orgs = self.construct_organisms(generation+1)
+            joined_orgs = self.construct_organisms(gen+1)
             
             # Build, simulate and score all organisms
-            scored_orgs = self.evaluate_organisms(joined_orgs, "generation_"+str(generation+1), "basic", 0)
+            scored_orgs = self.evaluate_organisms(joined_orgs, "generation_"+str(gen+1), "basic", 0)
             #self.sim.empty_directory("generations/generation_X")
             #scored_orgs = self.evaluate_organisms(joined_orgs, "generation_X", "basic", 0)
 
@@ -163,7 +161,7 @@ class Evolution:
             gen_hour = (gen_mins // 60)
             gen_time = str("%02d:%02d:%02d") % (gen_hour, gen_mins % 60, gen_secs % 60)
 
-            gen_results.append([generation+1, avg_fit, max_fit, gen_time])
+            gen_results.append([gen+1, avg_fit, max_fit, gen_time])
 
             if(verbose): print( "  {0:03d} | {1:+07.2f}% | {2:+07.2f}% | {3} ".format(*gen_results[-1]))
 
@@ -177,18 +175,19 @@ class Evolution:
             scored_orgs = self.evaluate_organisms(elite_orgs, "elites", "elite", 100)
 
         # Calculate result metrics
-        evo_results = [0, 0]
+        evo_results = [0.0, 0.0, 0.0, 0.0]
         if (len(gen_results) > 1):
             evo_results[0] = (gen_results[-1][1] - gen_results[0][1]) / len(gen_results)
             evo_results[1] = ((gen_results[-1][1] - gen_results[-2][1]) - (gen_results[1][1] - gen_results[0][1])) / len(gen_results)
+            evo_results[2] = np.max(np.array(np.array(gen_results)[:, 1], dtype=float))
+            evo_results[3] = np.argmax(np.array(np.array(gen_results)[:, 1], dtype=float))
 
         # Format results as dataframes
         fmt_gen_results = pd.DataFrame(gen_results, columns=["Gen", "Avg Fitness", "Max Fitness", "Exe Time"]).set_index("Gen")
-        fmt_evo_results = pd.DataFrame([evo_results], columns=["Evo Speed", "Evo Accel"])
 
         if(verbose): print("\n#================ DONE ================#")
 
-        return fmt_gen_results, fmt_evo_results
+        return fmt_gen_results, evo_results[0], evo_results[1], evo_results[2], evo_results[3]
         
 
         
