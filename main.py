@@ -6,17 +6,21 @@ import pandas as pd
 
 def main():
     """Runner function for testing the NEATbots module."""
-
+    
     # MultiNEAT hyperparameters
-    neat_params = NEAT.Parameters()
+    testing_params = NEAT.Parameters()
+    optimal_params = NEAT.Parameters()
+
+    #final_evo = setup_experiment(optimal_params)
+    #final_evo.evolve_organisms(elites=True, verbose=True)
 
     # Set MultiNEAT control parameters:
-    neat_params.DetectCompetetiveCoevolutionStagnation = True
-    neat_params.RouletteWheelSelection = False
-    neat_params.AllowClones = False
+    testing_params.DetectCompetetiveCoevolutionStagnation = True
+    testing_params.RouletteWheelSelection = False
+    testing_params.AllowClones = False
 
     # Set experiment ranges for MultiNEAT hyperparameters
-    experiments = { 
+    exp_ranges = { 
         "MinSpecies":                   [4, [2, 4, 6, 8, 10]],
         "MaxSpecies":                   [10, [2, 4, 6, 8, 10]],
         "YoungAgeTreshold":             [5, [2, 4, 6, 8, 10]],
@@ -44,43 +48,60 @@ def main():
         #"MutateGenomeTraitsProb":      [1.0, [2, 4, 6, 8, 10]],
     }
 
-    with open("./experiments.csv", mode="w") as f:
+    with open("./Experiment_Results.csv", mode="w") as f:
         f.write("Exp No.,Test No.,Test Value,Evo Speed,Evo Accel,Max Avg Fit,Generation of Max Avg Fit\n") 
 
-    for e, exp_param in enumerate(experiments.keys()):
+    for e, exp_param in enumerate(exp_ranges.keys()):
 
         exp_results = list()
 
         # Get values for this experiments hyperparameter
-        default, test_vals = experiments[exp_param]
+        default, test_vals = exp_ranges[exp_param]
+
+        # For recording optimal hyperparameter value
+        rec_max_avg = 0
 
         # Set all other hyperparameters to their defaults
-        for hyp_param in experiments.keys():
+        for hyp_param in exp_ranges.keys():
             if hyp_param != exp_param:
-                neat_params.__setattr__(hyp_param, experiments[hyp_param][0])
+                testing_params.__setattr__(hyp_param, exp_ranges[hyp_param][0])
                 
         # Iterate over test values for current hyperparameter
         for t, test_val in enumerate(test_vals):
-            neat_params.__setattr__(exp_param, test_val)
+            testing_params.__setattr__(exp_param, test_val)
 
-            # VXA (Simulation settings class)
-            vxa = VXA(src="./gyms/gym_02.vxa", 
-                HeapSize=0.6, EnableCilia=0, EnableSignals=1, EnableExpansion=1, EnableCollision=1, 
-                SimTime=0.01, TempPeriod=0.0, VaryTempEnabled=1, TempAmplitude=20, TempBase=25, TempEnabled=1)
+            # Create evolution object for test
+            testing_evo = setup_experiment(testing_params)
 
-            # Simulation object
-            sim = Simulation("./voxcraft-sim/voxcraft-sim", "./voxcraft-sim/vx3_node_worker", "./generations", vxa)
+            # Perform evolution and return results
+            gen_results, evo_speed, evo_accel, max_avg, max_avg_gen = testing_evo.evolve_organisms(elites=False, verbose=False)
+            exp_results.append([str("%02d")%(e+1), str("%02d")%(t+1), test_val, evo_speed, evo_accel, max_avg, max_avg_gen])
 
-            # Evolution object
-            evo = Evolution(sim, neat_params, gen_n=2, pop_s=16, W=3, H=3, D=3)
+            # Update optimal hyperparams
+            if (rec_max_avg < max_avg):
+                rec_max_avg = max_avg
+                optimal_params.__setattr__(exp_param, test_val)
 
-            # Experiment results
-            gen_results, evo_speed, evo_accel, max_average, max_avg_gen = evo.evolve_organisms(elites=True, verbose=False)
+        # Experiment results
+        fmt_exp_results = pd.DataFrame(exp_results)
+        fmt_exp_results.to_csv("./Experiment_Results.csv", mode="a", float_format="%+07.2f", header=False, index=False)
 
-            exp_results.append([str("%02d")%(e+1), str("%02d")%(t+1), test_val, evo_speed, evo_accel, max_average, max_avg_gen])
-        
-        fmt_exp_results = pd.DataFrame(exp_results)#, columns=["Experiment No.", "Test No." "Test Value", "Evo Speed", "Evo Accel", "Max Avg Fit", "Generation of Max Avg Fit"])
-        fmt_exp_results.to_csv("./experiments.csv", mode="a", float_format="%+07.2f", header=False, index=False)
+    # Run using optimal hyperparameters
+    final_evo = setup_experiment(optimal_params)
+    final_evo.evolve_organisms(elites=True, verbose=True)
+    
+def setup_experiment(params: NEAT.Parameters):
+    # VXA (Simulation settings class)
+    vxa = VXA(src="./gyms/gym_05.vxa", 
+        HeapSize=0.6, EnableCilia=0, EnableSignals=1, EnableExpansion=1, EnableCollision=1, 
+        SimTime=0.001, TempPeriod=0.0, VaryTempEnabled=1, TempAmplitude=20, TempBase=25, TempEnabled=1)
+
+    # Simulation object
+    sim = Simulation("./voxcraft-sim/voxcraft-sim", "./voxcraft-sim/vx3_node_worker", "./generations", vxa)
+
+    # Evolution object
+    return Evolution(sim, params, gen_n=8, pop_s=16, W=4, H=4, D=4)
+
 
 if __name__ == "__main__":
     main()

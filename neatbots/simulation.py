@@ -153,7 +153,6 @@ class Simulation():
 
         # Prevent specification-gaming using bugs by detecting simulation divergence
         for k in fitnesses.keys():
-            egh = re.search(r"Diverged:.+"+ str(k) +".vxd", hist_dict["log"])
             if (re.search(r"Diverged:.+"+ str(k) +".vxd", hist_dict["log"]) != None):
                 fitnesses[k] = 0.0
         

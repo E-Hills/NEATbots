@@ -187,10 +187,6 @@ class VXA:
 
         return env_arr, org_arr
 
-    def map_range(self, a: float, a_min: float, a_max: float, b_min: float, b_max: float):
-        b = ((a - a_min) / (a_max - a_min)) * (b_max - b_min) + b_min
-        return b
-
     def add_material(self, RGBA=[None, None, None, None], isEmpty=0.0, isTarget=0.0, isMeasured=1.0, Fixed=0.0, sticky=0.0, Cilia=0.0, 
                      isPaceMaker=0.0, PaceMakerPeriod=0.0, signalValueDecay=0.0, signalTimeDecay=0.0, inactivePeriod=0.0, 
                      MatModel=0.0, Elastic_Mod=1.0, Fail_Stress=0.0, Density=1.0, Poissons_Ratio=0.35, CTE=0.0, 
@@ -266,9 +262,17 @@ class VXA:
         etree.SubElement(display, "Alpha").text = str(1)
 
         # ===== Mechanical =====
+        defaults = palette.find(".//Defaults")
         new_mech = etree.SubElement(new_mat, "Mechanical")
+        # Iterate through mechanical properties
         for tag in properties.keys():
-            etree.SubElement(new_mech, tag).text = str(properties[tag](args[tag]))
+            # Check if gym specifies this property as constant
+            if (bool(eval(defaults.find(".//"+tag).get("isConst"))) == True):
+                # Set gym specified constant value
+                etree.SubElement(new_mech, tag).text = str(defaults.find(".//"+tag).text)
+            else:
+                # Scale normalised argument into specified range and set property value
+                etree.SubElement(new_mech, tag).text = str(properties[tag](args[tag]))
 
         # Check that new_mat is distinct enough from others
         for m, pre_mat in enumerate(palette.findall("Material")):

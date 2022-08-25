@@ -48,7 +48,7 @@ class Evolution:
         self.params.PopulationSize = pop_s
 
         # Define the seed genomes on which all genomes are based
-        self.morphology_seed_genome = NEAT.Genome(0, 5, 8, 12, False, 
+        self.morphology_seed_genome = NEAT.Genome(0, 5, 8, 19, False, 
                                                NEAT.ActivationFunction.UNSIGNED_SIGMOID, NEAT.ActivationFunction.RELU, 1, self.params, 4)
         self.controlsys_seed_genome = NEAT.Genome(1, 4, 8, 2, False, 
                                                NEAT.ActivationFunction.UNSIGNED_SIGMOID, NEAT.ActivationFunction.RELU, 1, self.params, 1)
@@ -155,7 +155,7 @@ class Evolution:
             avg_fit = np.average([org.fitness for org in scored_orgs.values()])
             max_fit = np.max([org.fitness for org in scored_orgs.values()])
 
-            # Record ececution time for benchmarking
+            # Record execution time for benchmarking
             gen_secs = time.perf_counter() - gen_start
             gen_mins = (gen_secs // 60)
             gen_hour = (gen_mins // 60)
@@ -180,7 +180,7 @@ class Evolution:
             evo_results[0] = (gen_results[-1][1] - gen_results[0][1]) / len(gen_results)
             evo_results[1] = ((gen_results[-1][1] - gen_results[-2][1]) - (gen_results[1][1] - gen_results[0][1])) / len(gen_results)
             evo_results[2] = np.max(np.array(np.array(gen_results)[:, 1], dtype=float))
-            evo_results[3] = np.argmax(np.array(np.array(gen_results)[:, 1], dtype=float))
+            evo_results[3] = np.argmax(np.array(np.array(gen_results)[:, 1], dtype=float)) + 1
 
         # Format results as dataframes
         fmt_gen_results = pd.DataFrame(gen_results, columns=["Gen", "Avg Fitness", "Max Fitness", "Exe Time"]).set_index("Gen")
