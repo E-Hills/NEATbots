@@ -11,8 +11,8 @@ def main():
     testing_params = NEAT.Parameters()
     optimal_params = NEAT.Parameters()
 
-    #final_evo = setup_experiment(optimal_params)
-    #final_evo.evolve_organisms(elites=True, verbose=True)
+    #demo_evo = setup_experiment(optimal_params)
+    #demo_evo.evolve_organisms(elites=True, verbose=True)
 
     # Set MultiNEAT control parameters:
     testing_params.DetectCompetetiveCoevolutionStagnation = True
@@ -94,13 +94,13 @@ def setup_experiment(params: NEAT.Parameters):
     # VXA (Simulation settings class)
     vxa = VXA(src="./gyms/gym_05.vxa", 
         HeapSize=0.6, EnableCilia=0, EnableSignals=1, EnableExpansion=1, EnableCollision=1, 
-        SimTime=0.001, TempPeriod=0.0, VaryTempEnabled=1, TempAmplitude=20, TempBase=25, TempEnabled=1)
+        SimTime=2.0, TempPeriod=0.0, VaryTempEnabled=1, TempAmplitude=20, TempBase=25, TempEnabled=1)
 
     # Simulation object
     sim = Simulation("./voxcraft-sim/voxcraft-sim", "./voxcraft-sim/vx3_node_worker", "./generations", vxa)
 
     # Evolution object
-    return Evolution(sim, params, gen_n=8, pop_s=16, W=4, H=4, D=4)
+    return Evolution(sim, params, gen_n=16, pop_s=16, W=3, H=3, D=3)
 
 
 if __name__ == "__main__":
